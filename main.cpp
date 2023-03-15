@@ -2,6 +2,47 @@
 #include "global.h"
 using namespace std;
 
+double qReadDouble()
+{
+    double res=0;
+    bool f=0;
+    char c=0;
+    c=fgetc(stdin);
+    if(c=='-')
+        f=1;
+    while(c>='0' && c<='9')
+    {
+        res=res*10+c-48;
+    }
+    if(c=='.')
+    {
+        c=fgetc(stdin);
+        double tmp=0.1;
+        while(c>='0' && c<='9')
+        {
+            res+=tmp*(c-48);
+            tmp/=10;
+        }
+    }
+    if(f)
+        res=-res;
+    return res;
+}
+int qReadInt()
+{
+    int res=0;
+    bool f=0;
+    c=fgetc(stdin);
+    if(c=='-')
+        f=1;
+    while(c>='0' && c<='9')
+    {
+        res=res*10+c-48;
+    }
+    if(f)
+        res=-res;
+    return res;
+}
 
 bool readUntilOK() {
     char line[1024];
