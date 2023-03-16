@@ -7,6 +7,35 @@ using namespace std;
 
 #define PI acos(-1)
 
+void readRobot()
+{
+    for(int i=0;i<4;i++)
+    {
+        robot1234[i].workStationID=qReadInt();
+        robot1234[i].itemID=qReadInt();
+        robot1234[i].timeValue=qReadDouble();
+        robot1234[i].collisionValue=qReadDouble();
+        robot1234[i].angleSpeed=qReadDouble();
+        robot1234[i].lineSpeed_x=qReadDouble();
+        robot1234[i].lineSpeed_y=qReadDouble();
+        robot1234[i].towards=qReadDouble();
+        robot1234[i].pos_x=qReadDouble();
+        robot1234[i].pos_y=qReadDouble();
+    }
+}
+void readPerFrame(){
+  char line[1024];
+    int K=0;
+    for(int i = 1; i <= 2;i++){
+        fgets(line, sizeof line,stdin);
+    }
+    K=line[0]-48;
+    for(int i = 0;i < K; i++){
+        fgets(line, sizeof line,stdin);
+    }
+    readRobot();    
+}
+
 double qReadDouble() {
   double res = 0;
   bool f = 0;
