@@ -84,6 +84,11 @@ void readPerFrame(){
     fprintf(stderr,"pos_x: %f\n",robot1234[i].pos_x);
     fprintf(stderr,"pos_y: %f\n",robot1234[i].pos_y);
   }
+  while (fgets(line, sizeof line, stdin)) {
+    if (line[0] == 'O' && line[1] == 'K') {
+      return;
+    }
+    }
 }
 
 bool readUntilOK() {
@@ -219,7 +224,7 @@ int main() {
   fflush(stdout);
   int frameID;
   while (scanf("%d", &frameID) != EOF) {
-    readUntilOK();
+    readPerFrame();
     printf("%d\n", frameID);
 
     for (int i = 0; i < 4; i++)
