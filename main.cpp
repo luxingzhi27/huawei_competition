@@ -72,7 +72,7 @@ void readPerFrame(){
   int K=0;
   fgets(line, sizeof line,stdin);
   K=qReadInt();
-  for(int i = 0;i < K; i++){
+  for(int i = 0;i <= K; i++){
       fgets(line, sizeof line,stdin);
   }
   fprintf(stderr,"K=%d\n",K);
