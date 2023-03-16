@@ -82,12 +82,12 @@ void readPerFrame(){
   for(int i=0;i<4;i++)
   {
     fprintf(stderr,"Robot[%d]******:\n",i);
-    fprintf(stderr,"itemID:\n",robot1234[i].itemID);
-    fprintf(stderr,"timeValue:\n",robot1234[i].timeValue);
-    fprintf(stderr,"collisionValue:\n",robot1234[i].collisionValue);
-    fprintf(stderr,"angleSpeed:\n",robot1234[i].angleSpeed);
-    fprintf(stderr,"lineSpeed_x:\n",robot1234[i].lineSpeed_x);
-    fprintf(stderr,"lineSpeed_y:\n",robot1234[i].lineSpeed_y);
+    fprintf(stderr,"itemID:%d\n",robot1234[i].itemID);
+    fprintf(stderr,"timeValue:%d\n",robot1234[i].timeValue);
+    fprintf(stderr,"collisionValue:%f\n",robot1234[i].collisionValue);
+    fprintf(stderr,"angleSpeed:%f\n",robot1234[i].angleSpeed);
+    fprintf(stderr,"lineSpeed_x:%f\n",robot1234[i].lineSpeed_x);
+    fprintf(stderr,"lineSpeed_y:%f\n",robot1234[i].lineSpeed_y);
     fprintf(stderr,"pos_x: %f\n",robot1234[i].pos_x);
     fprintf(stderr,"pos_y: %f\n",robot1234[i].pos_y);
   }
