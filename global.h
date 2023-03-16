@@ -29,7 +29,9 @@ public:
     Robot(int _ID):ID(_ID){}
 };
 
-Robot r1(0),r2(1),r3(2),r4(3);
+// Robot r1(0),r2(1),r3(2),r4(3);
+Robot* robot1234 = new Robot[4]{0, 1, 2, 3};
+// WorkStation* workStation = new WorkStation[50];
 
 struct position{
     double x;
