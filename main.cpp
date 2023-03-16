@@ -70,17 +70,24 @@ void readRobot()
 void readPerFrame(){
   char line[1024];
   int K=0;
-  for(int i = 1; i <= 2;i++){
+  for(int i = 0; i < 2;i++){
       fgets(line, sizeof line,stdin);
   }
   K=line[0]-48;
   for(int i = 0;i < K; i++){
       fgets(line, sizeof line,stdin);
   }
+  fprintf(stderr,"K=%d\n",K);
   readRobot();
   for(int i=0;i<4;i++)
   {
-    fprintf(stderr,"Robot[%d]\n:",i);
+    fprintf(stderr,"Robot[%d]******:\n",i);
+    fprintf(stderr,"itemID:\n",robot1234[i].itemID);
+    fprintf(stderr,"timeValue:\n",robot1234[i].timeValue);
+    fprintf(stderr,"collisionValue:\n",robot1234[i].collisionValue);
+    fprintf(stderr,"angleSpeed:\n",robot1234[i].angleSpeed);
+    fprintf(stderr,"lineSpeed_x:\n",robot1234[i].lineSpeed_x);
+    fprintf(stderr,"lineSpeed_y:\n",robot1234[i].lineSpeed_y);
     fprintf(stderr,"pos_x: %f\n",robot1234[i].pos_x);
     fprintf(stderr,"pos_y: %f\n",robot1234[i].pos_y);
   }
