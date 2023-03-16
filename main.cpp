@@ -70,10 +70,8 @@ void readRobot()
 void readPerFrame(){
   char line[1024];
   int K=0;
-  for(int i = 0; i < 2;i++){
-      fgets(line, sizeof line,stdin);
-  }
-  K=line[0]-48;
+  fgets(line, sizeof line,stdin);
+  K=qReadInt();
   for(int i = 0;i < K; i++){
       fgets(line, sizeof line,stdin);
   }
@@ -82,6 +80,7 @@ void readPerFrame(){
   for(int i=0;i<4;i++)
   {
     fprintf(stderr,"Robot[%d]******:\n",i);
+    fprintf(stderr,"WorkStationID:%d\n",robot1234[i].workStationID);
     fprintf(stderr,"itemID:%d\n",robot1234[i].itemID);
     fprintf(stderr,"timeValue:%d\n",robot1234[i].timeValue);
     fprintf(stderr,"collisionValue:%f\n",robot1234[i].collisionValue);
