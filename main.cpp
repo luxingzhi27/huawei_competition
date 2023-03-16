@@ -77,7 +77,13 @@ void readPerFrame(){
   for(int i = 0;i < K; i++){
       fgets(line, sizeof line,stdin);
   }
-  readRobot();    
+  readRobot();
+  for(int i=0;i<4;i++)
+  {
+    fprintf(stderr,"Robot[%d]\n:",i);
+    fprintf(stderr,"pos_x: %f",robot1234[i].pos_x);
+    fprintf(stderr,"pos_y: %f",robot1234[i].pos_y);
+  }
 }
 
 bool readUntilOK() {
