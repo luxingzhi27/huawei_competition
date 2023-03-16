@@ -8,40 +8,47 @@ using namespace std;
 #define PI acos(-1)
 
 double qReadDouble() {
-  double res = 0;
-  bool f = 0;
-  char c = 0;
-  c = fgetc(stdin);
-  if (c == '-')
-    f = 1;
-  while (c >= '0' && c <= '9') {
-    res = res * 10 + c - 48;
-  }
-  if (c == '.') {
+    double res = 0;
+    bool f = 0;
+    char c = 0;
     c = fgetc(stdin);
-    double tmp = 0.1;
-    while (c >= '0' && c <= '9') {
-      res += tmp * (c - 48);
-      tmp /= 10;
+    if (c == '-') {
+        f = 1;
+        c = fgetc(stdin);
     }
-  }
-  if (f)
-    res = -res;
-  return res;
+    while (c >= '0' && c <= '9') {
+        res = res * 10 + c - 48;
+        c = fgetc(stdin);
+    }
+    if (c == '.') {
+        c = fgetc(stdin);
+        double tmp = 0.1;
+        while (c >= '0' && c <= '9') {
+            res += tmp * (c - 48);
+            tmp /= 10;
+            c = fgetc(stdin);
+        }
+    }
+    if (f)
+        res = -res;
+    return res;
 }
 int qReadInt() {
-  int res = 0;
-  bool f = 0;
-  char c = 0;
-  c = fgetc(stdin);
-  if (c == '-')
-    f = 1;
-  while (c >= '0' && c <= '9') {
-    res = res * 10 + c - 48;
-  }
-  if (f)
-    res = -res;
-  return res;
+    int res = 0;
+    bool f = 0;
+    char c = 0;
+    c = fgetc(stdin);
+    if (c == '-') {
+        f = 1;
+        c = fgetc(stdin);
+    }
+    while (c >= '0' && c <= '9') {
+        res = res * 10 + c - 48;
+        c = fgetc(stdin);
+    }
+    if (f)
+        res = -res;
+    return res;
 }
 
 void readRobot()
@@ -62,15 +69,15 @@ void readRobot()
 }
 void readPerFrame(){
   char line[1024];
-    int K=0;
-    for(int i = 1; i <= 2;i++){
-        fgets(line, sizeof line,stdin);
-    }
-    K=line[0]-48;
-    for(int i = 0;i < K; i++){
-        fgets(line, sizeof line,stdin);
-    }
-    readRobot();    
+  int K=0;
+  for(int i = 1; i <= 2;i++){
+      fgets(line, sizeof line,stdin);
+  }
+  K=line[0]-48;
+  for(int i = 0;i < K; i++){
+      fgets(line, sizeof line,stdin);
+  }
+  readRobot();    
 }
 
 bool readUntilOK() {
