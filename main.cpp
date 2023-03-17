@@ -3,9 +3,20 @@
 #include <cmath>
 #include <cstdio>
 #include <iostream>
+#include <type_traits>
+#include <vector>
 using namespace std;
 
 #define PI acos(-1)
+
+vector<WorkStation *> workStations;
+Robot* robots = new Robot[4]{0, 1, 2,  3};
+std::unordered_map<int,position> itemPos;
+int frameID;
+int money;
+int workStationNum=0;
+char line[1024];
+string instruction[] = {"forward", "rotate", "buy", "sell", "destroy"};
 
 double qReadDouble() {
   double res = 0;
@@ -33,6 +44,7 @@ double qReadDouble() {
     res = -res;
   return res;
 }
+
 int qReadInt() {
   int res = 0;
   bool f = 0;
@@ -53,40 +65,107 @@ int qReadInt() {
 
 void readRobot() {
   for (int i = 0; i < 4; i++) {
-    robot1234[i].workStationID = qReadInt();
-    robot1234[i].itemID = qReadInt();
-    robot1234[i].timeValue = qReadDouble();
-    robot1234[i].collisionValue = qReadDouble();
-    robot1234[i].angleSpeed = qReadDouble();
-    robot1234[i].lineSpeed_x = qReadDouble();
-    robot1234[i].lineSpeed_y = qReadDouble();
-    robot1234[i].towards = qReadDouble();
-    robot1234[i].pos_x = qReadDouble();
-    robot1234[i].pos_y = qReadDouble();
+    robots[i].workStationID = qReadInt();
+    robots[i].itemID = qReadInt();
+    robots[i].timeValue = qReadDouble();
+    robots[i].collisionValue = qReadDouble();
+    robots[i].angleSpeed = qReadDouble();
+    robots[i].lineSpeed_x = qReadDouble();
+    robots[i].lineSpeed_y = qReadDouble();
+    robots[i].towards = qReadDouble();
+    robots[i].pos.x = qReadDouble();
+    robots[i].pos.y = qReadDouble();
   }
 }
+
+int getProductType(int type){
+  if (type>=1&&type<=7){
+    return type; 
+  }else if(type==8||type==9){
+    return 0;
+  }
+  return -1;
+}
+
+void getRawMaterialType(int type,bool *rawMaterialType){
+  switch (type){
+    case 1:
+    case 2:
+    case 3:
+      break;
+    case 4:
+      rawMaterialType[1]=true;
+      rawMaterialType[2]=true;
+      break;
+    case 5:
+      rawMaterialType[1]=true;
+      rawMaterialType[3]=true;
+      break;
+    case 6:
+      rawMaterialType[2]=true;
+      rawMaterialType[3]=true;
+      break;
+    case 7:
+      rawMaterialType[4]=true;
+      rawMaterialType[5]=true;
+      rawMaterialType[6]=true;;
+      break;
+    case 8:
+      rawMaterialType[7]=true;
+      break;
+    case 9:
+      for (int i=1;i<8;++i){
+        rawMaterialType[i]=true;
+      }
+  }
+}
+
+
+void getRawMaterialStatus(int status,bool * rawMaterialStatus){
+  int a[8]={0,0,0,0,0,0,0,0};
+  for(int i=0; status>0; i++)    
+    {    
+        a[i]=status%2;    
+        status= status/2;  
+    }    
+  for (int i=1;i<8;++i){
+    if(a[i]==1){
+      rawMaterialStatus[i]=true;
+    }
+  }
+}
+
+void readWorkStation(){
+  workStationNum=qReadInt();
+  for (int i = 0; i < workStationNum; i++) {
+    workStations[i]->ID=i+1;
+    getRawMaterialType(workStations[i]->type, workStations[i]->rawMaterialType);
+    workStations[i]->type=qReadInt();
+    workStations[i]->productType=getProductType(workStations[i]->type);
+    workStations[i]->pos.x=qReadDouble();
+    workStations[i]->pos.y=qReadDouble();
+    workStations[i]->leftWorkTime=qReadInt();
+    getRawMaterialStatus(qReadInt(), workStations[i]->rawMaterialStatus);
+    workStations[i]->productStatus=qReadInt();
+  }
+}
+
 void readPerFrame() {
-  char line[1024];
-  int K = 0;
-  fgets(line, sizeof line, stdin);
-  K = qReadInt();
-  for (int i = 0; i < K; i++) {
-    fgets(line, sizeof line, stdin);
-  }
-  fprintf(stderr, "K=%d\n", K);
+  fgets(line,sizeof line,stdin);
+  readWorkStation();
   readRobot();
-  for (int i = 0; i < 4; i++) {
+  /*for (int i = 0; i < 4; i++) {
     fprintf(stderr, "Robot[%d]******:\n", i);
-    fprintf(stderr, "WorkStationID:%d\n", robot1234[i].workStationID);
-    fprintf(stderr, "itemID:%d\n", robot1234[i].itemID);
-    fprintf(stderr, "timeValue:%d\n", robot1234[i].timeValue);
-    fprintf(stderr, "collisionValue:%f\n", robot1234[i].collisionValue);
-    fprintf(stderr, "angleSpeed:%f\n", robot1234[i].angleSpeed);
-    fprintf(stderr, "lineSpeed_x:%f\n", robot1234[i].lineSpeed_x);
-    fprintf(stderr, "lineSpeed_y:%f\n", robot1234[i].lineSpeed_y);
-    fprintf(stderr, "pos_x: %f\n", robot1234[i].pos_x);
-    fprintf(stderr, "pos_y: %f\n", robot1234[i].pos_y);
-  }
+    fprintf(stderr, "WorkStationID:%d\n", robots[i].workStationID);
+    fprintf(stderr, "itemID:%d\n", robots[i].itemID);
+    fprintf(stderr, "timeValue:%f\n", robots[i].timeValue);
+    fprintf(stderr, "collisionValue:%f\n", robots[i].collisionValue);
+    fprintf(stderr, "angleSpeed:%f\n", robots[i].angleSpeed);
+    fprintf(stderr, "lineSpeed_x:%f\n", robots[i].lineSpeed_x);
+    fprintf(stderr, "lineSpeed_y:%f\n", robots[i].lineSpeed_y);
+    fprintf(stderr, "pos_x: %f\n", robots[i].pos.x);
+    fprintf(stderr, "pos_y: %f\n", robots[i].pos.y);
+  }*/
   while (fgets(line, sizeof line, stdin)) {
     if (line[0] == 'O' && line[1] == 'K') {
       return;
@@ -94,37 +173,18 @@ void readPerFrame() {
   }
 }
 
-bool readUntilOK() {
-  char line[1024];
-  while (fgets(line, sizeof line, stdin)) {
-    if (line[0] == 'O' && line[1] == 'K') {
-      return true;
-    }
-    // do something
-  }
-  return false;
-}
 
 bool readMap() {
-  char line[1024];
-  int row = 0;
-  int workstationID = 0;
-  int robotID = 0;
   while (fgets(line, sizeof line, stdin)) {
     if (line[0] == 'O' && line[1] == 'K') {
       return true;
     }
     for (int i = 0; i < 100; ++i) {
-      if (line[i] == 'A') {
-        itemPos[robotID] = position{i * 0.5 + 0.25, 50 - row * 0.5 - 0.25};
-        robotID++;
-      } else if (line[i] >= '1' && line[i] <= '9') {
-        itemPos[(10 + line[i] - '0') * 100 + workstationID] =
-            position{i * 0.5 + 0.25, 50 - row * 0.5 - 0.25};
-        workstationID++;
+      if (line[i] >= '1' && line[i] <= '9') {
+        workStationNum++;
+        workStations.push_back(new WorkStation);
       }
     }
-    ++row;
   }
   return false;
 }
@@ -135,15 +195,15 @@ double getDistance(position start, position end) {
   return sqrt(distance_x * distance_x + distance_y * distance_y);
 }
 
-int getNearestWorkStation(int workstationID, position robotPos) {
+int getNearestWorkStation(int workStationType, position robotPos) {
   double minDistance = 10000;
   int aimID = 0;
-  for (auto i : itemPos) {
-    if ((i.first / 100) % 10 == workstationID) {
-      auto distance = getDistance(robotPos, i.second);
+  for (auto i : workStations) {
+    if (i->type== workStationType) {
+      auto distance = getDistance(robotPos, i->pos);
       if (distance < minDistance) {
         minDistance = distance;
-        aimID = i.first;
+        aimID = i->ID;
       }
     }
   }
@@ -173,21 +233,19 @@ bool anglePass(position now,position target,double towards)
 }
 /*
  * 机器人移动函数
- * @传入参数：int robotID,positon workstationPos 
+ * @传入参数：int robotID,positon aimPos 
  */
-void moveTo(int robotID) {
+void moveTo(int robotID,position aimPos) {
 
-  string instruction[] = {"forward", "rotate", "buy", "sell", "destroy"};
-  auto aimID = getNearestWorkStation(9, itemPos[robotID]);
-  fprintf(stderr, "workstation9:%d\n", aimID);
+  //auto aimID = getNearestWorkStation(9, itemPos[robotID]);
+  double dstx = aimPos.x, dsty = aimPos.y;
+  fprintf(stderr, "aimPos:(%f,%f)\n\n",dstx,dsty);
   fflush(stderr);
-  double dstx = itemPos.at(aimID).x, dsty = itemPos.at(aimID).y;
-  double nowx = robot1234[robotID].pos_x, nowy = robot1234[robotID].pos_y;
-  fprintf(stderr, "dstx:%f dsty:%f\n", dstx, dsty);
-  double angleSpeed = robot1234[robotID].angleSpeed;
-  double lineSpeedX = robot1234[robotID].lineSpeed_x;
-  double lineSpeedY = robot1234[robotID].lineSpeed_y;
-  double towards = robot1234[robotID].towards;
+  double nowx = robots[robotID].pos.x, nowy = robots[robotID].pos.y;
+  double angleSpeed = robots[robotID].angleSpeed;
+  double lineSpeedX = robots[robotID].lineSpeed_x;
+  double lineSpeedY = robots[robotID].lineSpeed_y;
+  double towards = robots[robotID].towards;
 
   double outLineSpeed, outAngleSpeed; // 要输出的速度
 
@@ -254,24 +312,23 @@ void moveTo(int robotID) {
   printf("%s %d %f\n", instruction[1].c_str(), robotID, outAngleSpeed);
   fflush(stdout);
 
-  fprintf(stderr, "%s %d %f\n", instruction[0].c_str(), robotID, outLineSpeed);
-  fprintf(stderr, "%s %d %f\n", instruction[1].c_str(), robotID, outAngleSpeed);
-  fprintf(stderr,
-          "------------------------------------------------------------");
-  fflush(stderr);
+  //fprintf(stderr, "%s %d %f\n", instruction[0].c_str(), robotID, outLineSpeed);
+  //fprintf(stderr, "%s %d %f\n", instruction[1].c_str(), robotID, outAngleSpeed);
+  //fprintf(stderr,
+          //"------------------------------------------------------------");
+  //fflush(stderr);
 }
 
 int main() {
   readMap();
   puts("OK");
   fflush(stdout);
-  int frameID;
-  while (scanf("%d", &frameID) != EOF) {
+  while (scanf("%d", &frameID ) != EOF) {
     readPerFrame();
     printf("%d\n", frameID);
 
     for (int i = 0; i < 4; i++)
-      moveTo(i);
+      moveTo(i,workStations[9]->pos);
 
     printf("OK\n");
     fflush(stdout);
