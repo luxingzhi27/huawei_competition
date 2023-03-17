@@ -181,10 +181,13 @@ void moveTo(int robotID) {
   // 线加速度
   double maxLineAccelerationLight = 250.0 / squareLight;
   double maxLineAccelerationHeavy = 250.0 / squareHeavy;
-  // 目标与当前夹角
+  // 目标与x轴夹角
   double angle;
   if (dstx != nowx) {
     angle = atan((dsty - nowy) / (dstx - nowx));
+    if(dstx < nowx){
+      angle = dsty >= nowy ? ( PI + angle) : (angle - PI);
+    }
   } else {
     if (dsty > nowy) {
       angle = PI / 2;
@@ -192,19 +195,27 @@ void moveTo(int robotID) {
       angle = -PI / 2;
     }
   }
+  //目标与机器人朝向夹角
+  double angle_towards = fabs(towards - angle);
 #if 1
   // 线速度
-  if ((dstx - nowx) * lineSpeedX >= 0 && (dsty - nowy) * lineSpeedY >= 0) {
-    outLineSpeed = 6;
-  } else {
+  if(angle_towards > PI / 2)
     outLineSpeed = -2;
-  }
+  else
+    outLineSpeed = 6;
+  // double result_x = (dstx - nowx) * lineSpeedX;
+  // double result_y = (dsty - nowy) * lineSpeedY;
+  // if (result_x >= 0 && result_y >= 0) {
+  //   outLineSpeed = 6;
+  // } else if(result_x < 0 && result_y < 0){
+  //   outLineSpeed = -2;
+  // }
+
   // 角速度
-  double derta1 =
-      angleSpeed * angleSpeed -
-      2 * maxAngleAccelerationHeavy * (fabs(angle) + fabs(towards) - 2 * PI);
+  double derta1 = angleSpeed * angleSpeed -
+      (maxAngleAccelerationHeavy + maxAngleAccelerationLight) * (angle_towards - 2 * PI);
   double derta2 = angleSpeed * angleSpeed +
-                  2 * maxAngleAccelerationHeavy * (fabs(angle) + fabs(towards));
+      (maxAngleAccelerationHeavy + maxAngleAccelerationLight) * angle_towards; 
   double time1 = sqrt(derta1) - fabs(angleSpeed); // 加速度与速度方向相同
   double time2 = sqrt(derta2) + fabs(angleSpeed); // 加速度与速度方向相反
   if (time1 < time2) {
@@ -215,12 +226,13 @@ void moveTo(int robotID) {
 #endif
 
   // 输出指令
-  cout << instruction[0] << " " << robotID << " " << outLineSpeed << endl;
-  cout << instruction[1] << " " << robotID << " " << outAngleSpeed << endl;
+  printf("%s %d %f", instruction[0].c_str(), robotID, outLineSpeed);
+  printf("%s %d %f", instruction[1].c_str(), robotID, outAngleSpeed);
   fflush(stdout);
 
   fprintf(stderr,"%s %d %f\n",instruction[0].c_str() ,robotID,outLineSpeed);
   fprintf(stderr,"%s %d %f\n",instruction[1].c_str() ,robotID,outAngleSpeed);
+  fprintf(stderr, "------------------------------------------------------------");
   fflush(stderr);
 }
 
