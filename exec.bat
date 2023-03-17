@@ -1,5 +1,3 @@
-# bat
-
 cd ./WindowsBuild
 cmake .. "MinGW Makefiles"
 mingw32-make
