@@ -152,7 +152,7 @@ int getNearestWorkStation(int workstationID, position robotPos) {
 /*
  * 机器人移动函数
  * @传入参数：int robotID,positon workstationPos 
- * /
+ */
 void moveTo(int robotID) {
 
   string instruction[] = {"forward", "rotate", "buy", "sell", "destroy"};
