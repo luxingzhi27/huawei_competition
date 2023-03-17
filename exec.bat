@@ -1,5 +1,5 @@
 cd ./WindowsBuild
-cmake .. "MinGW Makefiles"
+cmake .. -G "MinGW Makefiles"
 mingw32-make
 copy .\main.exe ..\WindowsRelease\
 cd ../WindowsRelease/

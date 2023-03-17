@@ -28,3 +28,4 @@
 *.out
 WindowsBuild/
 LinuxBuild/
+.idea/
