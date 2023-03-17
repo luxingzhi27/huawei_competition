@@ -8,93 +8,90 @@ using namespace std;
 #define PI acos(-1)
 
 double qReadDouble() {
-    double res = 0;
-    bool f = 0;
-    char c = 0;
+  double res = 0;
+  bool f = 0;
+  char c = 0;
+  c = fgetc(stdin);
+  if (c == '-') {
+    f = 1;
     c = fgetc(stdin);
-    if (c == '-') {
-        f = 1;
-        c = fgetc(stdin);
-    }
+  }
+  while (c >= '0' && c <= '9') {
+    res = res * 10 + c - 48;
+    c = fgetc(stdin);
+  }
+  if (c == '.') {
+    c = fgetc(stdin);
+    double tmp = 0.1;
     while (c >= '0' && c <= '9') {
-        res = res * 10 + c - 48;
-        c = fgetc(stdin);
+      res += tmp * (c - 48);
+      tmp /= 10;
+      c = fgetc(stdin);
     }
-    if (c == '.') {
-        c = fgetc(stdin);
-        double tmp = 0.1;
-        while (c >= '0' && c <= '9') {
-            res += tmp * (c - 48);
-            tmp /= 10;
-            c = fgetc(stdin);
-        }
-    }
-    if (f)
-        res = -res;
-    return res;
+  }
+  if (f)
+    res = -res;
+  return res;
 }
 int qReadInt() {
-    int res = 0;
-    bool f = 0;
-    char c = 0;
+  int res = 0;
+  bool f = 0;
+  char c = 0;
+  c = fgetc(stdin);
+  if (c == '-') {
+    f = 1;
     c = fgetc(stdin);
-    if (c == '-') {
-        f = 1;
-        c = fgetc(stdin);
-    }
-    while (c >= '0' && c <= '9') {
-        res = res * 10 + c - 48;
-        c = fgetc(stdin);
-    }
-    if (f)
-        res = -res;
-    return res;
+  }
+  while (c >= '0' && c <= '9') {
+    res = res * 10 + c - 48;
+    c = fgetc(stdin);
+  }
+  if (f)
+    res = -res;
+  return res;
 }
 
-void readRobot()
-{
-    for(int i=0;i<4;i++)
-    {
-        robot1234[i].workStationID=qReadInt();
-        robot1234[i].itemID=qReadInt();
-        robot1234[i].timeValue=qReadDouble();
-        robot1234[i].collisionValue=qReadDouble();
-        robot1234[i].angleSpeed=qReadDouble();
-        robot1234[i].lineSpeed_x=qReadDouble();
-        robot1234[i].lineSpeed_y=qReadDouble();
-        robot1234[i].towards=qReadDouble();
-        robot1234[i].pos_x=qReadDouble();
-        robot1234[i].pos_y=qReadDouble();
-    }
-}
-void readPerFrame(){
-  char line[1024];
-  int K=0;
-  fgets(line, sizeof line,stdin);
-  K=qReadInt();
-  for(int i = 0;i < K; i++){
-      fgets(line, sizeof line,stdin);
+void readRobot() {
+  for (int i = 0; i < 4; i++) {
+    robot1234[i].workStationID = qReadInt();
+    robot1234[i].itemID = qReadInt();
+    robot1234[i].timeValue = qReadDouble();
+    robot1234[i].collisionValue = qReadDouble();
+    robot1234[i].angleSpeed = qReadDouble();
+    robot1234[i].lineSpeed_x = qReadDouble();
+    robot1234[i].lineSpeed_y = qReadDouble();
+    robot1234[i].towards = qReadDouble();
+    robot1234[i].pos_x = qReadDouble();
+    robot1234[i].pos_y = qReadDouble();
   }
-  fprintf(stderr,"K=%d\n",K);
+}
+void readPerFrame() {
+  char line[1024];
+  int K = 0;
+  fgets(line, sizeof line, stdin);
+  K = qReadInt();
+  for (int i = 0; i < K; i++) {
+    fgets(line, sizeof line, stdin);
+  }
+  fprintf(stderr, "K=%d\n", K);
   readRobot();
-  for(int i=0;i<4;i++)
-  {
-    fprintf(stderr,"Robot[%d]******:\n",i);
-    fprintf(stderr,"WorkStationID:%d\n",robot1234[i].workStationID);
-    fprintf(stderr,"itemID:%d\n",robot1234[i].itemID);
-    fprintf(stderr,"timeValue:%d\n",robot1234[i].timeValue);
-    fprintf(stderr,"collisionValue:%f\n",robot1234[i].collisionValue);
-    fprintf(stderr,"angleSpeed:%f\n",robot1234[i].angleSpeed);
-    fprintf(stderr,"lineSpeed_x:%f\n",robot1234[i].lineSpeed_x);
-    fprintf(stderr,"lineSpeed_y:%f\n",robot1234[i].lineSpeed_y);
-    fprintf(stderr,"pos_x: %f\n",robot1234[i].pos_x);
-    fprintf(stderr,"pos_y: %f\n",robot1234[i].pos_y);
+  for (int i = 0; i < 4; i++) {
+    fprintf(stderr, "Robot[%d]******:\n", i);
+    fprintf(stderr, "WorkStationID:%d\n", robot1234[i].workStationID);
+    fprintf(stderr, "itemID:%d\n", robot1234[i].itemID);
+    fprintf(stderr, "timeValue:%d\n", robot1234[i].timeValue);
+    fprintf(stderr, "collisionValue:%f\n", robot1234[i].collisionValue);
+    fprintf(stderr, "angleSpeed:%f\n", robot1234[i].angleSpeed);
+    fprintf(stderr, "lineSpeed_x:%f\n", robot1234[i].lineSpeed_x);
+    fprintf(stderr, "lineSpeed_y:%f\n", robot1234[i].lineSpeed_y);
+    fprintf(stderr, "pos_x: %f\n", robot1234[i].pos_x);
+    fprintf(stderr, "pos_y: %f\n", robot1234[i].pos_y);
   }
   while (fgets(line, sizeof line, stdin)) {
     if (line[0] == 'O' && line[1] == 'K') {
       return;
     }
-    }
+  }
 }
 
 bool readUntilOK() {
@@ -152,16 +149,19 @@ int getNearestWorkStation(int workstationID, position robotPos) {
   }
   return aimID;
 }
-// 输出机器人移动指令
+/*
+ * 机器人移动函数
+ * @传入参数：int robotID,positon workstationPos 
+ * /
 void moveTo(int robotID) {
 
   string instruction[] = {"forward", "rotate", "buy", "sell", "destroy"};
   auto aimID = getNearestWorkStation(9, itemPos[robotID]);
-  fprintf(stderr,"workstation9:%d\n",aimID);
-  fflush(stderr); 
+  fprintf(stderr, "workstation9:%d\n", aimID);
+  fflush(stderr);
   double dstx = itemPos.at(aimID).x, dsty = itemPos.at(aimID).y;
   double nowx = robot1234[robotID].pos_x, nowy = robot1234[robotID].pos_y;
-  fprintf(stderr,"dstx:%f dsty:%f\n",dstx,dsty);
+  fprintf(stderr, "dstx:%f dsty:%f\n", dstx, dsty);
   double angleSpeed = robot1234[robotID].angleSpeed;
   double lineSpeedX = robot1234[robotID].lineSpeed_x;
   double lineSpeedY = robot1234[robotID].lineSpeed_y;
@@ -185,8 +185,8 @@ void moveTo(int robotID) {
   double angle;
   if (dstx != nowx) {
     angle = atan((dsty - nowy) / (dstx - nowx));
-    if(dstx < nowx){
-      angle = dsty >= nowy ? ( PI + angle) : (angle - PI);
+    if (dstx < nowx) {
+      angle = dsty >= nowy ? (PI + angle) : (angle - PI);
     }
   } else {
     if (dsty > nowy) {
@@ -195,11 +195,11 @@ void moveTo(int robotID) {
       angle = -PI / 2;
     }
   }
-  //目标与机器人朝向夹角
+  // 目标与机器人朝向夹角
   double angle_towards = fabs(towards - angle);
 #if 1
   // 线速度
-  if(angle_towards > PI / 2)
+  if (angle_towards > PI / 2)
     outLineSpeed = -2;
   else
     outLineSpeed = 6;
@@ -213,9 +213,11 @@ void moveTo(int robotID) {
 
   // 角速度
   double derta1 = angleSpeed * angleSpeed -
-      (maxAngleAccelerationHeavy + maxAngleAccelerationLight) * (angle_towards - 2 * PI);
-  double derta2 = angleSpeed * angleSpeed +
-      (maxAngleAccelerationHeavy + maxAngleAccelerationLight) * angle_towards; 
+                  (maxAngleAccelerationHeavy + maxAngleAccelerationLight) *
+                      (angle_towards - 2 * PI);
+  double derta2 =
+      angleSpeed * angleSpeed +
+      (maxAngleAccelerationHeavy + maxAngleAccelerationLight) * angle_towards;
   double time1 = sqrt(derta1) - fabs(angleSpeed); // 加速度与速度方向相同
   double time2 = sqrt(derta2) + fabs(angleSpeed); // 加速度与速度方向相反
   if (time1 < time2) {
@@ -226,13 +228,14 @@ void moveTo(int robotID) {
 #endif
 
   // 输出指令
-  printf("%s %d %f", instruction[0].c_str(), robotID, outLineSpeed);
-  printf("%s %d %f", instruction[1].c_str(), robotID, outAngleSpeed);
+  printf("%s %d %f\n", instruction[0].c_str(), robotID, outLineSpeed);
+  printf("%s %d %f\n", instruction[1].c_str(), robotID, outAngleSpeed);
   fflush(stdout);
 
-  fprintf(stderr,"%s %d %f\n",instruction[0].c_str() ,robotID,outLineSpeed);
-  fprintf(stderr,"%s %d %f\n",instruction[1].c_str() ,robotID,outAngleSpeed);
-  fprintf(stderr, "------------------------------------------------------------");
+  fprintf(stderr, "%s %d %f\n", instruction[0].c_str(), robotID, outLineSpeed);
+  fprintf(stderr, "%s %d %f\n", instruction[1].c_str(), robotID, outAngleSpeed);
+  fprintf(stderr,
+          "------------------------------------------------------------");
   fflush(stderr);
 }
 
