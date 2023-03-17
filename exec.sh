@@ -1,6 +1,7 @@
 # /bin/bash
 
-cd ./build
+cd ./LinuxBuild
+cmake
 make
 cp ./main ../LinuxRelease/
 cd ../LinuxRelease/

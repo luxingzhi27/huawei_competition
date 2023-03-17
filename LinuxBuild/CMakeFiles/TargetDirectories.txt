@@ -1,0 +1,3 @@
+/home/luxingzhi/huawei competition/huawei_competition/LinuxBuild/CMakeFiles/main.dir
+/home/luxingzhi/huawei competition/huawei_competition/LinuxBuild/CMakeFiles/edit_cache.dir
+/home/luxingzhi/huawei competition/huawei_competition/LinuxBuild/CMakeFiles/rebuild_cache.dir
