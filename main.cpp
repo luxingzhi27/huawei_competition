@@ -149,6 +149,28 @@ int getNearestWorkStation(int workstationID, position robotPos) {
   }
   return aimID;
 }
+//剩余角度(绝对值)和角速度(绝对值)对应关系
+double angleSpeedFuc(double angle)
+{
+  if(abs(angle)>=PI)
+    return  PI;
+  else{
+    double angleSpeed=0;
+    angleSpeed=sqrt(angle*(2*PI-angle));
+    return angleSpeed;
+  }
+}
+//检查角度是否在合法范围内
+bool anglePass(position now,position target,double towards)
+{
+  double distance=getDistance(now,target);
+  double deltaAng=asin(0.4/distance);
+  double targetAng=atan2((target.y-now.y),(target.x-now.x));
+  if(abs(targetAng-towards)<=deltaAng)
+    return true;
+  else
+    return false;
+}
 /*
  * 机器人移动函数
  * @传入参数：int robotID,positon workstationPos 
