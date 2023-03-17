@@ -319,6 +319,36 @@ void moveTo(int robotID,position aimPos) {
   //fflush(stderr);
 }
 
+position getDestination(int robotID){
+
+}
+
+void buyAndSell(int robotID){
+  //周围有工作台
+  if(robots[robotID].workStationID != -1){
+    //机器人里有货
+    if(robots[robotID].itemID != 0){
+      //货物与当前工作台的需求符合且当前工作台缺货,则卖出
+      if(workStations[robots[robotID].workStationID]->rawMaterialType[robots[robotID].itemID] 
+          && !workStations[robots[robotID].workStationID]->rawMaterialStatus[robots[robotID].itemID]){
+            printf("%s %d\n", instruction[3].c_str(), robotID);
+      }
+    }//end of 有货
+    //机器人没有货物且周围工作台有货
+    else{ 
+      for(int i = 1; i < 8; i++){
+        if(workStations[robots[robotID].workStationID]->rawMaterialStatus[i]){
+            printf("%s %d", instruction[2].c_str(), robotID);
+            break;
+        }
+      }
+    }// end of 没货
+
+  }//end of 有工作台
+
+  return ;
+}
+
 int main() {
   readMap();
   puts("OK");
@@ -327,9 +357,11 @@ int main() {
     readPerFrame();
     printf("%d\n", frameID);
 
-    for (int i = 0; i < 4; i++)
-      moveTo(i,workStations[9]->pos);
-
+    for (int i = 0; i < 4; i++){
+      buyAndSell(i);
+      moveTo(i, getDestination(i));
+    }
+    
     printf("OK\n");
     fflush(stdout);
   }
