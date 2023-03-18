@@ -252,8 +252,8 @@ void moveTo(int robotID, position aimPos) {
   double weightLight = squareLight * density;
   double weightHeavy = squareHeavy * density;
   // 角加速度
-  double maxAngleAccelerationLight = 50.0 / squareLight;
-  double maxAngleAccelerationHeavy = 50.0 / squareHeavy;
+  double maxAngleAccelerationLight = 100.0 / squareLight;
+  double maxAngleAccelerationHeavy = 100.0 / squareHeavy;
   // 线加速度
   double maxLineAccelerationLight = 250.0 / squareLight;
   double maxLineAccelerationHeavy = 250.0 / squareHeavy;
@@ -315,35 +315,8 @@ void moveTo(int robotID, position aimPos) {
   // fflush(stderr);
 }
 
-position getDestination(int robotID) { return workStations[9]->pos; }
+position getDestination(int robotID) { return workStations[15]->pos; }
 
-void buyAndSell(int robotID) {
-  // 周围有工作台
-  if (robots[robotID].workStationID != -1) {
-    // 机器人里有货
-    if (robots[robotID].itemID != 0) {
-      // 货物与当前工作台的需求符合且当前工作台缺货,则卖出
-      if (workStations[robots[robotID].workStationID]
-              ->rawMaterialType[robots[robotID].itemID] &&
-          !workStations[robots[robotID].workStationID]
-               ->rawMaterialStatus[robots[robotID].itemID]) {
-        printf("%s %d\n", instruction[3].c_str(), robotID);
-      }
-    } // end of 有货
-    // 机器人没有货物且周围工作台有货
-    else {
-      for (int i = 1; i < 8; i++) {
-        if (workStations[robots[robotID].workStationID]->rawMaterialStatus[i]) {
-          printf("%s %d\n", instruction[2].c_str(), robotID);
-          break;
-        }
-      }
-    } // end of 没货
-
-  } // end of 有工作台
-
-  return;
-}
 
 int main() {
   readMap();
@@ -354,7 +327,7 @@ int main() {
     printf("%d\n", frameID);
 
     for (int i = 0; i < 4; i++) {
-      buyAndSell(i);
+      //buyAndSell(i);
       moveTo(i, getDestination(i));
     }
 
