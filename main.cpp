@@ -8,6 +8,11 @@
 using namespace std;
 
 #define PI acos(-1)
+const double r=0.45, R=0.53, p=20, F=250;    //半径和密度和最大作用力（小写无货，大写有货）
+const double m=r*r*PI*p, M=R*R*PI*p;  //质量：m无货，M有货
+const double a=F/m, A=F/M;            //最大加速度
+const double s_min=18/a, S_min=18/A;  //最短加速（减速）距离
+const double ang_a=5/(PI*r*r*r*r), ang_A=5/(PI*R*R*R*R);  //最大角加速度
 
 vector<WorkStation *> workStations;
 Robot *robots = new Robot[4]{0, 1, 2, 3};
@@ -207,25 +212,132 @@ int getNearestWorkStation(int workStationType, position robotPos) {
   }
   return aimID;
 }
+
+
+//获取机器人速度大小
+double _getLineSPeed(double linespeed_x,double linespeed_y)
+{
+  double lineSpeed=sqrt(linespeed_x*linespeed_x+linespeed_y*linespeed_y);
+  return lineSpeed;
+}
+double getLineSpeed(int robotID)
+{
+  return _getLineSPeed(robots[robotID].lineSpeed_x,robots[robotID].lineSpeed_y);
+}
 // 剩余角度(绝对值)和角速度(绝对值)对应关系
 double angleSpeedFuc(double angle) {
-  if (abs(angle) >= PI)
+  if (abs(angle) >= PI*0.5)
     return PI;
   else {
     double angleSpeed = 0;
-    angleSpeed = sqrt(angle * (2 * PI - angle));
+    angleSpeed = 2*sqrt(angle*(PI-angle));
     return angleSpeed;
   }
 }
-// 检查角度是否在合法范围内
-bool anglePass(position now, position target, double towards) {
-  double distance = getDistance(now, target);
-  double deltaAng = asin(0.4 / distance);
-  double targetAng = atan2((target.y - now.y), (target.x - now.x));
-  if (abs(targetAng - towards) <= deltaAng)
-    return true;
+// // 检查角度是否在合法范围内
+// bool anglePass(position now, position target, double towards) {
+//   double distance = getDistance(now, target);
+//   double deltaAng = asin(0.4 / distance);
+//   double targetAng = atan2((target.y - now.y), (target.x - now.x));
+//   if (abs(targetAng - towards) <= deltaAng)
+//     return true;
+//   else
+//     return false;
+// }
+
+//机器人移动函数（测试）总共包含三部分
+void _rotate(int robotID, position aimPos, double diffAng, double deltaAng)
+{
+  if(diffAng>(PI/2))
+  {
+    printf("%s %d %f\n", instruction[0].c_str(), robotID, 0.0); //降速
+    fprintf(stderr,"%s %d %f\n", instruction[0].c_str(), robotID, 0.0);
+  }
+  double angleSpeed=robots[robotID].angleSpeed;
+  double towards=robots[robotID].towards;
+  double acAngSpeed;
+  double minAng;    //最短减速/加速距离
+  double f= diffAng<0 ? 1 : (-1);
+  diffAng=fabs(diffAng);
+  if(!robots[robotID].itemID) //判断是否拿货物
+    acAngSpeed=ang_a;
   else
-    return false;
+    acAngSpeed=ang_A;
+  minAng= angleSpeed*angleSpeed/(2*acAngSpeed);
+  if(fabs(diffAng-minAng)<=deltaAng)    //可以减角速度为0
+  {
+    printf("%s %d %f\n", instruction[1].c_str(), robotID, 0.0);
+    fprintf(stderr, "%s %d %f\n", instruction[1].c_str(), robotID, 0.0);
+  }
+  else
+  {
+    double outAngleSpeed=angleSpeedFuc(diffAng)*f;
+    printf("%s %d %f\n", instruction[1].c_str(), robotID, outAngleSpeed);
+    fprintf(stderr, "%s %d %f\n", instruction[1].c_str(), robotID, outAngleSpeed);
+  }
+}
+void _run(int robotID, position aimPos, double distance, double deltaDis)
+{
+  double lineSpeed=getLineSpeed(robotID);
+  fprintf(stderr,"should be accelerating!************LineSpeed= %f",lineSpeed);
+  double minDis,acSpeed;      //最小加速/减速距离，最大加速度
+  if(!robots[robotID].itemID) //机器人没有货
+  {
+    minDis=s_min;
+    acSpeed=a;
+  }
+  else                        //有货
+  {
+      minDis=S_min;
+      acSpeed=A;
+  }
+  if(!lineSpeed)  //线速度为零，需要加速
+  {
+    if(distance>=(2*minDis))    //满足最大加速度
+    {
+      printf("%s %d %f\n", instruction[0].c_str(), robotID, 6.0);
+      fprintf(stderr, "%s %d %f :::1\n", instruction[0].c_str(), robotID, 6.0);
+    }
+    else
+    {
+      double outLineSpeed=sqrt(distance/acSpeed);   //计算适合的速度
+      printf("%s %d %f\n", instruction[0].c_str(), robotID, outLineSpeed);
+      fprintf(stderr, "%s %d %f :::2\n", instruction[0].c_str(), robotID, outLineSpeed);
+    }
+  }
+  else                          //线速度不为零，判断是否要减速
+  {
+    minDis=lineSpeed*lineSpeed/(2*acSpeed);
+    if(abs(distance-minDis)<=deltaDis) //满足减速条件
+    {
+      printf("%s %d %f\n", instruction[0].c_str(), robotID, 0.0); 
+      fprintf(stderr, "%s %d %f :::3\n", instruction[0].c_str(), robotID, 0.0);
+    }
+  }
+}
+void moveToTest(int robotID, position aimPos)
+{
+  // double lineSpeed=getLineSpeed(robotID);
+  position now=robots[robotID].pos;
+  double towards=robots[robotID].towards;
+  double distance = getDistance(now, aimPos);
+  double deltaAng = asin(0.4 / distance);
+  double targetAng = atan2((aimPos.y - now.y), (aimPos.x - now.x));
+  double diffAngle = towards - targetAng; 
+  double DiffAngle = fabs(diffAngle);
+  if(DiffAngle>=2*PI) //选择小的角度，角度正负与要旋转的正负相同
+  {
+    DiffAngle-=(2*PI);  
+  }
+  if (DiffAngle > deltaAng)  //需要转弯
+    _rotate(robotID,aimPos,diffAngle,deltaAng);
+  else                              //角度满足，可以直走
+  {
+    double real_Dis=cos(DiffAngle)*distance;
+    double tmp=sin(DiffAngle)*distance;
+    double deltaDis=sqrt(0.16-tmp*tmp);
+    _run(robotID,aimPos,real_Dis,deltaDis);
+  }
 }
 /*
  * 机器人移动函数
@@ -252,8 +364,8 @@ void moveTo(int robotID, position aimPos) {
   double weightLight = squareLight * density;
   double weightHeavy = squareHeavy * density;
   // 角加速度
-  double maxAngleAccelerationLight = 50.0 / squareLight;
-  double maxAngleAccelerationHeavy = 50.0 / squareHeavy;
+  double maxAngleAccelerationLight = ang_a;
+  double maxAngleAccelerationHeavy = ang_A;
   // 线加速度
   double maxLineAccelerationLight = 250.0 / squareLight;
   double maxLineAccelerationHeavy = 250.0 / squareHeavy;
@@ -315,7 +427,7 @@ void moveTo(int robotID, position aimPos) {
   // fflush(stderr);
 }
 
-position getDestination(int robotID) { return workStations[9]->pos; }
+position getDestination(int robotID) { return workStations[15]->pos; }
 
 void buyAndSell(int robotID) {
   // 周围有工作台
@@ -354,8 +466,8 @@ int main() {
     printf("%d\n", frameID);
 
     for (int i = 0; i < 4; i++) {
-      buyAndSell(i);
-      moveTo(i, getDestination(i));
+//      buyAndSell(i);
+      moveToTest(i, getDestination(i));
     }
 
     printf("OK\n");

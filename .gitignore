@@ -29,3 +29,5 @@
 WindowsBuild/
 LinuxBuild/
 .idea/
+
+*.rep
