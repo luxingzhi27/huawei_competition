@@ -505,7 +505,7 @@ void moveToTest(int robotID, position aimPos) {
   position now = robots[robotID].pos;
   double towards = robots[robotID].towards;
   double distance = getDistance(now, aimPos);
-  double deltaAng = asin(0.3 / distance);
+  double deltaAng = asin(0.395 / distance);
   double targetAng = atan2((aimPos.y - now.y), (aimPos.x - now.x));
   double diffAngle = targetAng - towards; 
   double DiffAngle = fabs(diffAngle);
