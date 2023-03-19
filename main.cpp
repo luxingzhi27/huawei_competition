@@ -189,13 +189,13 @@ void robotProcess(int robotType) {
     dstWorkStationID[robotType] = getDst(robotType, cnt[robotType]);
     //fprintf(stderr, "robotType:%d  dstWorkStationID:%d\n", robotType,
             //dstWorkStationID[robotType]);
-    fflush(stderr);
+    //fflush(stderr);
     pos[robotType].x = workStations[dstWorkStationID[robotType]]->pos.x;
     pos[robotType].y = workStations[dstWorkStationID[robotType]]->pos.y;
     cnt[robotType]++;
   }
-  // fprintf(stderr,"robotType:%d  pos_x:%f
-  // pos_y:%f\n",robotType,pos[robotType].x,pos[robotType].y);
+  // fprintf(stderr,"robotType:%d  pos_x:%fpos_y:%f\n",robotType,pos[robotType].x,pos[robotType].y);
+  // fflush(stderr);
   moveToTest(robotType, pos[robotType]);
   if (robots[robotType].workStationID == dstWorkStationID[robotType]) {
     robots[robotType].isMovingToDst = false;
@@ -247,22 +247,24 @@ void robotProcess(int robotType) {
 void dispatch() {
   for (int i = 0; i < 4; ++i) {
     robots[i].lastBuy=robots[i].itemID==0?robots[i].lastBuy:robots[i].itemID;
+    //fprintf(stderr, "robot:%d,lastBuy:%d\n",i,robots[i].lastBuy);
+    //fflush(stderr);
     robotProcess(i);
   }
 }
 
 void readRobot() {
   for (int i = 0; i < 4; i++) {
-    robots[i].workStationID = qReadInt();
-    robots[i].itemID = qReadInt();
-    robots[i].timeValue = qReadDouble();
-    robots[i].collisionValue = qReadDouble();
-    robots[i].angleSpeed = qReadDouble();
-    robots[i].lineSpeed_x = qReadDouble();
-    robots[i].lineSpeed_y = qReadDouble();
-    robots[i].towards = qReadDouble();
-    robots[i].pos.x = qReadDouble();
-    robots[i].pos.y = qReadDouble();
+    cin>>robots[i].workStationID; //= qReadInt();
+    cin>>robots[i].itemID;// = qReadInt();
+    cin>>robots[i].timeValue;// = qReadDouble();
+    cin>>robots[i].collisionValue; //= qReadDouble();
+    cin>>robots[i].angleSpeed;// = qReadDouble();
+    cin>>robots[i].lineSpeed_x;// = qReadDouble();
+    cin>>robots[i].lineSpeed_y;// = qReadDouble();
+    cin>>robots[i].towards ;//= qReadDouble();
+    cin>>robots[i].pos.x ;//= qReadDouble();
+    cin>>robots[i].pos.y;// = qReadDouble();
   }
 }
 
@@ -327,13 +329,15 @@ void readWorkStation() {
   for (int i = 0; i < workStationNum; i++) {
     workStations[i]->ID = i;
     getRawMaterialType(workStations[i]->type, workStations[i]->rawMaterialType);
-    workStations[i]->type = qReadInt();
+    cin>>workStations[i]->type;// = qReadInt();
     workStations[i]->productType = getProductType(workStations[i]->type);
-    workStations[i]->pos.x = qReadDouble();
-    workStations[i]->pos.y = qReadDouble();
-    workStations[i]->leftWorkTime = qReadInt();
-    getRawMaterialStatus(qReadInt(), workStations[i]->rawMaterialStatus);
-    workStations[i]->productStatus = qReadInt();
+    cin>>workStations[i]->pos.x;// = qReadDouble();
+    cin>>workStations[i]->pos.y ;//= qReadDouble();
+    cin>>workStations[i]->leftWorkTime ;//= qReadInt();
+    int tmp=0;
+    cin>>tmp;
+    getRawMaterialStatus(tmp/*qReadInt()*/, workStations[i]->rawMaterialStatus);
+    cin>>workStations[i]->productStatus;// = qReadInt();
   }
 }
 
@@ -388,6 +392,8 @@ int getNearestWorkStation(int workStationType, position robotPos) {
   for (auto i : workStations) {
     if (i->type == workStationType) {
       auto distance = getDistance(robotPos, i->pos);
+      fprintf(stderr,"workStationID:%d  pos_x:%f  pos_y:%f\n",i->ID,i->pos.x,i->pos.y);
+      fflush(stderr);
       if (distance < minDistance) {
         minDistance = distance;
         aimID = i->ID;
@@ -490,7 +496,7 @@ void _run(int robotID, double distance, double deltaDis)
     if(abs(distance-minDis)<deltaDis) //满足减速条件
     {
       printf("%s %d %f\n", instruction[0].c_str(), robotID, 0.0); 
-       fprintf(stderr, "%s %d %f :::0\n", instruction[0].c_str(), robotID, 0.0);
+       //fprintf(stderr, "%s %d %f :::0\n", instruction[0].c_str(), robotID, 0.0);
     }
   }
 }
@@ -503,8 +509,8 @@ void moveToTest(int robotID, position aimPos) {
   double targetAng = atan2((aimPos.y - now.y), (aimPos.x - now.x));
   double diffAngle = targetAng - towards; 
   double DiffAngle = fabs(diffAngle);
-  if(fabs(towards)>PI)
-    return;
+  // if(fabs(towards)>PI)
+  //   return;
   if (DiffAngle >= 2 * PI) //选择小的角度，角度正负与要旋转的正负相同
   {
     if(diffAngle>0)

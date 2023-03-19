@@ -30,7 +30,7 @@ public:
     double timeValue;
     double collisionValue;
     double towards;
-    int lastBuy;
+    int lastBuy=0;
     bool isMovingToDst=false;
     Robot(int _ID):ID(_ID){}
     position getPos(){return pos;};
