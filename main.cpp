@@ -248,17 +248,17 @@ double angleSpeedFuc(double angle) {
 //机器人移动函数（测试）总共包含三部分
 void _rotate(int robotID, position aimPos, double diffAng, double deltaAng)
 {
-  if(diffAng>(PI/2))
-  {
-    printf("%s %d %f\n", instruction[0].c_str(), robotID, 0.0); //降速
-    fprintf(stderr,"%s %d %f\n", instruction[0].c_str(), robotID, 0.0);
-  }
   double angleSpeed=robots[robotID].angleSpeed;
   double towards=robots[robotID].towards;
   double acAngSpeed;
   double minAng;    //最短减速/加速距离
-  double f= diffAng<0 ? 1 : (-1);
+  double f= diffAng>0 ? 1 : (-1);
   diffAng=fabs(diffAng);
+  if(diffAng>(PI/2))
+  {
+    printf("%s %d %f\n", instruction[0].c_str(), robotID, 0.0); //降速
+//    fprintf(stderr,"%s %d %f\n", instruction[0].c_str(), robotID, 0.0);
+  }
   if(!robots[robotID].itemID) //判断是否拿货物
     acAngSpeed=ang_a;
   else
@@ -267,19 +267,19 @@ void _rotate(int robotID, position aimPos, double diffAng, double deltaAng)
   if(fabs(diffAng-minAng)<=deltaAng)    //可以减角速度为0
   {
     printf("%s %d %f\n", instruction[1].c_str(), robotID, 0.0);
-    fprintf(stderr, "%s %d %f\n", instruction[1].c_str(), robotID, 0.0);
+//    fprintf(stderr, "%s %d %f\n", instruction[1].c_str(), robotID, 0.0);
   }
   else
   {
     double outAngleSpeed=angleSpeedFuc(diffAng)*f;
     printf("%s %d %f\n", instruction[1].c_str(), robotID, outAngleSpeed);
-    fprintf(stderr, "%s %d %f\n", instruction[1].c_str(), robotID, outAngleSpeed);
+//    fprintf(stderr, "%s %d %f\n", instruction[1].c_str(), robotID, outAngleSpeed);
   }
 }
 void _run(int robotID, position aimPos, double distance, double deltaDis)
 {
   double lineSpeed=getLineSpeed(robotID);
-  fprintf(stderr,"should be accelerating!************LineSpeed= %f",lineSpeed);
+//  fprintf(stderr,"should be accelerating!************LineSpeed= %f",lineSpeed);
   double minDis,acSpeed;      //最小加速/减速距离，最大加速度
   if(!robots[robotID].itemID) //机器人没有货
   {
@@ -296,13 +296,13 @@ void _run(int robotID, position aimPos, double distance, double deltaDis)
     if(distance>=(2*minDis))    //满足最大加速度
     {
       printf("%s %d %f\n", instruction[0].c_str(), robotID, 6.0);
-      fprintf(stderr, "%s %d %f :::1\n", instruction[0].c_str(), robotID, 6.0);
+    //  fprintf(stderr, "%s %d %f :::1\n", instruction[0].c_str(), robotID, 6.0);
     }
     else
     {
       double outLineSpeed=sqrt(distance/acSpeed);   //计算适合的速度
       printf("%s %d %f\n", instruction[0].c_str(), robotID, outLineSpeed);
-      fprintf(stderr, "%s %d %f :::2\n", instruction[0].c_str(), robotID, outLineSpeed);
+      // fprintf(stderr, "%s %d %f :::2\n", instruction[0].c_str(), robotID, outLineSpeed);
     }
   }
   else                          //线速度不为零，判断是否要减速
@@ -311,7 +311,7 @@ void _run(int robotID, position aimPos, double distance, double deltaDis)
     if(abs(distance-minDis)<=deltaDis) //满足减速条件
     {
       printf("%s %d %f\n", instruction[0].c_str(), robotID, 0.0); 
-      fprintf(stderr, "%s %d %f :::3\n", instruction[0].c_str(), robotID, 0.0);
+      // fprintf(stderr, "%s %d %f :::3\n", instruction[0].c_str(), robotID, 0.0);
     }
   }
 }
@@ -323,7 +323,7 @@ void moveToTest(int robotID, position aimPos)
   double distance = getDistance(now, aimPos);
   double deltaAng = asin(0.4 / distance);
   double targetAng = atan2((aimPos.y - now.y), (aimPos.x - now.x));
-  double diffAngle = towards - targetAng; 
+  double diffAngle = targetAng - towards; 
   double DiffAngle = fabs(diffAngle);
   if(DiffAngle>=2*PI) //选择小的角度，角度正负与要旋转的正负相同
   {
@@ -347,7 +347,7 @@ void moveTo(int robotID, position aimPos) {
 
   // auto aimID = getNearestWorkStation(9, itemPos[robotID]);
   double dstx = aimPos.x, dsty = aimPos.y;
-  fprintf(stderr, "aimPos:(%f,%f)\n\n", dstx, dsty);
+  // fprintf(stderr, "aimPos:(%f,%f)\n\n", dstx, dsty);
   fflush(stderr);
   double nowx = robots[robotID].pos.x, nowy = robots[robotID].pos.y;
   double angleSpeed = robots[robotID].angleSpeed;
@@ -465,7 +465,7 @@ int main() {
     readPerFrame();
     printf("%d\n", frameID);
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 3; i < 4; i++) {
 //      buyAndSell(i);
       moveToTest(i, getDestination(i));
     }
