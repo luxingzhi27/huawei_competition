@@ -31,3 +31,5 @@ LinuxBuild/
 .idea/
 
 *.rep
+main
+main.exe
