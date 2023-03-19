@@ -211,9 +211,12 @@ void robotProcess(int robotType) {
         printf("sell 2\n");
       break;
     case 3:
-      if (workStations[dstWorkStationID[robotType]]->type == 4 ||
-          workStations[dstWorkStationID[robotType]]->type == 5 ||
-          workStations[dstWorkStationID[robotType]]->type == 6)
+      if (workStations[dstWorkStationID[robotType]]->type == 4&&robots[3].lastBuy!=4)
+        printf("buy 3\n");
+      
+      else if(workStations[dstWorkStationID[robotType]]->type == 5&&robots[3].lastBuy!=5)
+        printf("buy 3\n");
+      else if(workStations[dstWorkStationID[robotType]]->type == 6&&robots[3].lastBuy!=6)
         printf("buy 3\n");
       else if (workStations[dstWorkStationID[robotType]]->type == 9)
         printf("sell 3\n");
@@ -485,10 +488,12 @@ void moveToTest(int robotID, position aimPos) {
   position now = robots[robotID].pos;
   double towards = robots[robotID].towards;
   double distance = getDistance(now, aimPos);
-  double deltaAng = asin(0.4 / distance);
+  double deltaAng = asin(0.3 / distance);
   double targetAng = atan2((aimPos.y - now.y), (aimPos.x - now.x));
   double diffAngle = targetAng - towards; 
   double DiffAngle = fabs(diffAngle);
+  if(fabs(towards)>PI)
+    return;
   if (DiffAngle >= 2 * PI) //选择小的角度，角度正负与要旋转的正负相同
   {
     if(diffAngle>0)
@@ -637,9 +642,7 @@ int main() {
     // for (int i = 0; i < 4; i++) {
     //       buyAndSell(i);
     // moveToTest(i, getDestination(i));
-    if(money<=200000)
-      dispatch();
-    //}
+    dispatch();
 
     printf("OK\n");
     fflush(stdout);
