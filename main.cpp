@@ -48,11 +48,13 @@ int getAimWorkStationType(int robotID, int cnt) {
       return 1;
       break;
     case 2:
-      return 2;
-      break;
-    case 3:
       return 4;
       break;
+    case 3:
+      return 2;
+      break;
+    case 4:
+      return 4;
     }
   } else if (robotID == 1) {
     switch (cnt) {
@@ -60,9 +62,12 @@ int getAimWorkStationType(int robotID, int cnt) {
       return 1;
       break;
     case 2:
-      return 3;
+      return 5;
       break;
     case 3:
+      return 3;
+      break;
+    case 4:
       return 5;
       break;
     }
@@ -72,9 +77,12 @@ int getAimWorkStationType(int robotID, int cnt) {
       return 2;
       break;
     case 2:
-      return 3;
+      return 6;
       break;
     case 3:
+      return 3;
+      break;
+    case 4:
       return 6;
       break;
     }
@@ -84,18 +92,24 @@ int getAimWorkStationType(int robotID, int cnt) {
       return 4;
       break;
     case 2:
-      return 5;
+      return 7;
       break;
     case 3:
-      return 6;
+      return 5;
       break;
     case 4:
       return 7;
       break;
     case 5:
-      return 8;
+      return 6;
       break;
     case 6:
+      return 7;
+      break;
+    case 7:
+      return 8;
+      break;
+    case 8:
       return 9;
       break;
     }
@@ -159,9 +173,9 @@ int getDst(int robotType, int cnt) {
 
 int getRobotxWorkStationNum(int robotType) {
   if (robotType == 0 || robotType == 1 || robotType == 2)
-    return 3;
+    return 4;
   else
-    return 6;
+    return 8;
 }
 
 void robotProcess(int robotType) {
@@ -422,13 +436,10 @@ void _rotate(int robotID, double diffAng, double deltaAng)
   double acAngSpeed;
   double minAng;    //最短减速/加速距离
   double f= diffAng>0 ? 1 : (-1);
-  fprintf(stderr,"diffAng: %f\n  ",diffAng);
   diffAng=fabs(diffAng);
-  if(diffAng>(PI/2))
-  {
+  if(diffAng>(PI))
     printf("%s %d %f\n", instruction[0].c_str(), robotID, 0.0); //降速
 //    fprintf(stderr,"%s %d %f***0\n", instruction[0].c_str(), robotID, 0.0);
-  }
   if(!robots[robotID].itemID) //判断是否拿货物
     acAngSpeed=ang_a;
   else
@@ -570,11 +581,7 @@ void moveToTest(int robotID, position aimPos) {
 //   //   outLineSpeed = 6;
 //   // } else if(result_x < 0 && result_y < 0){
 //   //   outLineSpeed = -2;
-//   // }
-
-//   // 角速度
-//   double derta1 = angleSpeed * angleSpeed -
-//                   (maxAngleAccelerationHeavy + maxAngleAccelerationLight) *
+//   // }// position getDestination(int robotID) { return workStations[15]->posLight) *
 //                       (angle_towards - 2 * PI);
 //   double derta2 =
 //       angleSpeed * angleSpeed +
@@ -601,35 +608,35 @@ void moveToTest(int robotID, position aimPos) {
 //   // fflush(stderr);
 // }
 
-position getDestination(int robotID) { return workStations[15]->pos; }
+// position getDestination(int robotID) { return workStations[15]->pos; }
 
-void buyAndSell(int robotID) {
-  // 周围有工作台
-  if (robots[robotID].workStationID != -1) {
-    // 机器人里有货
-    if (robots[robotID].itemID != 0) {
-      // 货物与当前工作台的需求符合且当前工作台缺货,则卖出
-      if (workStations[robots[robotID].workStationID]
-              ->rawMaterialType[robots[robotID].itemID] &&
-          !workStations[robots[robotID].workStationID]
-               ->rawMaterialStatus[robots[robotID].itemID]) {
-        printf("%s %d\n", instruction[3].c_str(), robotID);
-      }
-    } // end of 有货
-    // 机器人没有货物且周围工作台有货
-    else {
-      for (int i = 1; i < 8; i++) {
-        if (workStations[robots[robotID].workStationID]->rawMaterialStatus[i]) {
-          printf("%s %d\n", instruction[2].c_str(), robotID);
-          break;
-        }
-      }
-    } // end of 没货
+// void buyAndSell(int robotID) {
+//   // 周围有工作台
+//   if (robots[robotID].workStationID != -1) {
+//     // 机器人里有货
+//     if (robots[robotID].itemID != 0) {
+//       // 货物与当前工作台的需求符合且当前工作台缺货,则卖出
+//       if (workStations[robots[robotID].workStationID]
+//               ->rawMaterialType[robots[robotID].itemID] &&
+//           !workStations[robots[robotID].workStationID]
+//                ->rawMaterialStatus[robots[robotID].itemID]) {
+//         printf("%s %d\n", instruction[3].c_str(), robotID);
+//       }
+//     } // end of 有货
+//     // 机器人没有货物且周围工作台有货
+//     else {
+//       for (int i = 1; i < 8; i++) {
+//         if (workStations[robots[robotID].workStationID]->rawMaterialStatus[i]) {
+//           printf("%s %d\n", instruction[2].c_str(), robotID);
+//           break;
+//         }
+//       }
+//     } // end of 没货
 
-  } // end of 有工作台
+//   } // end of 有工作台
 
-  return;
-}
+//   return;
+// }
 
 int main() {
   readMap();
