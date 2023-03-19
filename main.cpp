@@ -246,18 +246,19 @@ double angleSpeedFuc(double angle) {
 // }
 
 //机器人移动函数（测试）总共包含三部分
-void _rotate(int robotID, position aimPos, double diffAng, double deltaAng)
+void _rotate(int robotID, double diffAng, double deltaAng)
 {
   double angleSpeed=robots[robotID].angleSpeed;
   double towards=robots[robotID].towards;
   double acAngSpeed;
   double minAng;    //最短减速/加速距离
   double f= diffAng>0 ? 1 : (-1);
+  fprintf(stderr,"diffAng: %f\n  ",diffAng);
   diffAng=fabs(diffAng);
   if(diffAng>(PI/2))
   {
     printf("%s %d %f\n", instruction[0].c_str(), robotID, 0.0); //降速
-//    fprintf(stderr,"%s %d %f\n", instruction[0].c_str(), robotID, 0.0);
+//    fprintf(stderr,"%s %d %f***0\n", instruction[0].c_str(), robotID, 0.0);
   }
   if(!robots[robotID].itemID) //判断是否拿货物
     acAngSpeed=ang_a;
@@ -276,7 +277,7 @@ void _rotate(int robotID, position aimPos, double diffAng, double deltaAng)
 //    fprintf(stderr, "%s %d %f\n", instruction[1].c_str(), robotID, outAngleSpeed);
   }
 }
-void _run(int robotID, position aimPos, double distance, double deltaDis)
+void _run(int robotID, double distance, double deltaDis)
 {
   double lineSpeed=getLineSpeed(robotID);
 //  fprintf(stderr,"should be accelerating!************LineSpeed= %f",lineSpeed);
@@ -308,10 +309,10 @@ void _run(int robotID, position aimPos, double distance, double deltaDis)
   else                          //线速度不为零，判断是否要减速
   {
     minDis=lineSpeed*lineSpeed/(2*acSpeed);
-    if(abs(distance-minDis)<=deltaDis) //满足减速条件
+    if(abs(distance-minDis)<deltaDis) //满足减速条件
     {
       printf("%s %d %f\n", instruction[0].c_str(), robotID, 0.0); 
-      // fprintf(stderr, "%s %d %f :::3\n", instruction[0].c_str(), robotID, 0.0);
+       fprintf(stderr, "%s %d %f :::0\n", instruction[0].c_str(), robotID, 0.0);
     }
   }
 }
@@ -327,16 +328,20 @@ void moveToTest(int robotID, position aimPos)
   double DiffAngle = fabs(diffAngle);
   if(DiffAngle>=2*PI) //选择小的角度，角度正负与要旋转的正负相同
   {
+    if(diffAngle>0)
+      diffAngle-=(2*PI);
+    else
+      diffAngle+=(2*PI);
     DiffAngle-=(2*PI);  
   }
   if (DiffAngle > deltaAng)  //需要转弯
-    _rotate(robotID,aimPos,diffAngle,deltaAng);
+    _rotate(robotID,diffAngle,deltaAng);
   else                              //角度满足，可以直走
   {
     double real_Dis=cos(DiffAngle)*distance;
     double tmp=sin(DiffAngle)*distance;
     double deltaDis=sqrt(0.16-tmp*tmp);
-    _run(robotID,aimPos,real_Dis,deltaDis);
+    _run(robotID,real_Dis,deltaDis);
   }
 }
 /*
