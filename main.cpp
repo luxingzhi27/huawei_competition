@@ -444,17 +444,20 @@ double angleSpeedFuc(double angle) {
     return angleSpeed;
   }
 }
-// // 检查角度是否在合法范围内
-// bool anglePass(position now, position target, double towards) {
-//   double distance = getDistance(now, target);
-//   double deltaAng = asin(0.4 / distance);
-//   double targetAng = atan2((target.y - now.y), (target.x - now.x));
-//   if (abs(targetAng - towards) <= deltaAng)
-//     return true;
-//   else
-//     return false;
-// }
 
+//distance与偏差系数的函数
+double deltaCoe(double distance)
+{
+  if(distance>=30.0)
+    return 0.5;
+  else if(distance<=15.0)
+    return 0.3;
+  else
+  {
+    double deltaCoe=0.3+(distance-15)*(0.5-0.3);
+    return deltaCoe;
+  }
+}
 //机器人移动函数（测试）总共包含三部分
 void _rotate(int robotID, double diffAng, double deltaAng) {
   double angleSpeed = robots[robotID].angleSpeed;
@@ -525,7 +528,7 @@ void moveToTest(int robotID, position aimPos) {
   position now = robots[robotID].pos;
   double towards = robots[robotID].towards;
   double distance = getDistance(now, aimPos);
-  double deltaAng = asin(0.392 / distance);
+  double deltaAng = asin(deltaCoe(distance) / distance);
   double targetAng = atan2((aimPos.y - now.y), (aimPos.x - now.x));
   double diffAngle = targetAng - towards;
   double DiffAngle = fabs(diffAngle);
