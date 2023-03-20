@@ -29,9 +29,11 @@ string instruction[] = {"forward", "rotate", "buy", "sell", "destroy"};
 int cnt[4] = {1, 1, 1, 1};
 position pos[4];
 int dstWorkStationID[4];
+int nextWorkStationID[4];
 
 double qReadDouble();
 int qReadInt();
+void robotProcess(int robotType);
 position getDst(int robotType);
 void readRobot();
 int getProductType(int type);
@@ -42,12 +44,13 @@ void readPerFrame();
 bool readMap();
 double getDistance(position start, position end);
 int getNearestWorkStation(int workStationType, int robotType);
-int getAimWorkStationType(int robotID, int cnt);
-void moveToTest(int robotID, position aimPos);
+int getAimWorkStationType(int robotID, int robotCnt);
+void moveToTest(int robotID, position aimPos, position aimPosNext);
+int getNextDst(int robotType,int cnt);
 
-int getAimWorkStationType(int robotID, int cnt) {
+int getAimWorkStationType(int robotID, int robotCnt) {
   if (robotID == 0) {
-    switch (cnt) {
+    switch (robotCnt) {
     case 1:
       return 1;
       break;
@@ -61,7 +64,7 @@ int getAimWorkStationType(int robotID, int cnt) {
       return 4;
     }
   } else if (robotID == 1) {
-    switch (cnt) {
+    switch (robotCnt) {
     case 1:
       return 1;
       break;
@@ -76,7 +79,7 @@ int getAimWorkStationType(int robotID, int cnt) {
       break;
     }
   } else if (robotID == 2) {
-    switch (cnt) {
+    switch (robotCnt) {
     case 1:
       return 2;
       break;
@@ -91,7 +94,11 @@ int getAimWorkStationType(int robotID, int cnt) {
       break;
     }
   } else if (robotID == 3) {
-    switch (cnt) {
+    if (robots[robotID].itemID==7){
+      cnt[robotID]--;
+      return 8;
+    }
+    switch (robotCnt) {
     case 1:
       return 4;
       break;
@@ -174,6 +181,28 @@ int getDst(int robotType, int cnt) {
   return getNearestWorkStation(dstWorkStationType, robotType);
 }
 
+int getNextDst(int robotType,int cnt){
+  auto dstWorkStationType=getAimWorkStationType(robotType,cnt);
+  auto dstPos =workStations[dstWorkStationID[robotType]]->pos;
+  double minDistance = 10000;
+  int aimID = 0;
+  for (auto i : workStations) {
+    if (i->type == dstWorkStationType) {
+      if (robotType == 3 && dstWorkStationType == 4 || dstWorkStationType == 5 ||
+          dstWorkStationType == 6) {
+        if (i->productStatus == 1)
+          return i->ID;
+      } //
+      auto distance = getDistance(dstPos, i->pos);
+      if (distance < minDistance) {
+        minDistance = distance;
+        aimID = i->ID;
+      }
+    }
+  }
+  return aimID;
+}
+
 int getRobotxWorkStationNum(int robotType) {
   if (robotType == 0 || robotType == 1 || robotType == 2)
     return 4;
@@ -191,6 +220,7 @@ void robotProcess(int robotType) {
     // fprintf(stderr, "robotType:%d  dstWorkStationID:%d\n", robotType,
     // dstWorkStationID[robotType]);
     // fflush(stderr);
+    nextWorkStationID[robotType]=getNextDst(robotType,cnt[robotType]+1);
     pos[robotType].x = workStations[dstWorkStationID[robotType]]->pos.x;
     pos[robotType].y = workStations[dstWorkStationID[robotType]]->pos.y;
     cnt[robotType]++;
@@ -249,8 +279,8 @@ void buyAndSell(int robotType) {
         printf("sell 3\n");
       else if (workStations[dstWorkStationID[robotType]]->type == 7 ||
                workStations[dstWorkStationID[robotType]]->type == 8) {
-        printf("buy 3\n");
         printf("sell 3\n");
+        printf("buy 3\n");
       }
       break;
     }
@@ -264,7 +294,7 @@ void dispatch() {
     // fprintf(stderr, "robot:%d,lastBuy:%d\n",i,robots[i].lastBuy);
     // fflush(stderr);
     robotProcess(i);
-    moveToTest(i, pos[i]);
+    moveToTest(i, pos[i], workStations[nextWorkStationID[i]]->pos);
     buyAndSell(i);
   }
 }
@@ -444,8 +474,26 @@ double angleSpeedFuc(double angle) {
     return angleSpeed;
   }
 }
-
-//distance与偏差系数的函数
+//diffAngNext与deltaDis的关系
+double deltaDisFuc(double diffAngNext)
+{
+  return 0.8 - 0.6*diffAngNext/PI;
+}
+//diffAng与转向速度的函数
+double TurningLineSpeed(double diffAng)
+{
+  if(diffAng<=PI/4)
+    return 6.0;
+  else if(diffAng>=(PI/2))
+  {
+    return 3-(2/PI)*diffAng;
+  }
+  else
+  {
+    return 6-(8/PI)*diffAng;
+  }
+}
+//distance与偏差角系数的函数
 double deltaCoe(double distance)
 {
   if(distance>=30.0)
@@ -466,9 +514,8 @@ void _rotate(int robotID, double diffAng, double deltaAng) {
   double minAng; //最短减速/加速距离
   double f = diffAng > 0 ? 1 : (-1);
   diffAng = fabs(diffAng);
-  if (diffAng > (PI))
-    printf("%s %d %f\n", instruction[0].c_str(), robotID, 0.0); //降速
-  //    fprintf(stderr,"%s %d %f***0\n", instruction[0].c_str(), robotID, 0.0);
+  printf("%s %d %f\n", instruction[0].c_str(), robotID, TurningLineSpeed(diffAng)); //带有速度函数的降速
+
   if (!robots[robotID].itemID) //判断是否拿货物
     acAngSpeed = ang_a;
   else
@@ -485,7 +532,8 @@ void _rotate(int robotID, double diffAng, double deltaAng) {
     //    outAngleSpeed);
   }
 }
-void _run(int robotID, double distance, double deltaDis) {
+void _run(int robotID, double distance, double deltaDis, double turningSpeed) 
+{
   double lineSpeed = getLineSpeed(robotID);
   //  fprintf(stderr,"should be accelerating!************LineSpeed=
   //  %f",lineSpeed);
@@ -499,31 +547,25 @@ void _run(int robotID, double distance, double deltaDis) {
     minDis = S_min;
     acSpeed = A;
   }
-  if (!lineSpeed) //线速度为零，需要加速
-  {
-    if (distance >= (2 * minDis)) //满足最大加速度
-    {
-      printf("%s %d %f\n", instruction[0].c_str(), robotID, 6.0);
-      //  fprintf(stderr, "%s %d %f :::1\n", instruction[0].c_str(),
-      //  robotID, 6.0);
-    } else {
-      double outLineSpeed = sqrt(distance / acSpeed); //计算适合的速度
-      printf("%s %d %f\n", instruction[0].c_str(), robotID, outLineSpeed);
-      // fprintf(stderr, "%s %d %f :::2\n", instruction[0].c_str(), robotID,
-      // outLineSpeed);
-    }
-  } else //线速度不为零，判断是否要减速
-  {
-    minDis = lineSpeed * lineSpeed / (2 * acSpeed);
-    if (abs(distance - minDis) < deltaDis) //满足减速条件
-    {
-      printf("%s %d %f\n", instruction[0].c_str(), robotID, 0.0);
-      // fprintf(stderr, "%s %d %f :::0\n", instruction[0].c_str(), robotID,
-      // 0.0);
-    }
-  }
+  printf("%s %d %f\n", instruction[0].c_str(), robotID, 6.0);
+
+  // if (!lineSpeed) //线速度为零，需要加速
+  // {
+  //   if (distance >= (2 * minDis)) //满足最大加速度
+  //   {
+  //     printf("%s %d %f\n", instruction[0].c_str(), robotID, 6.0);
+  //     //  fprintf(stderr, "%s %d %f :::1\n", instruction[0].c_str(),
+  //     //  robotID, 6.0);
+  //   } else {
+  //     double outLineSpeed = sqrt(distance / acSpeed); //计算适合的速度
+  //     printf("%s %d %f\n", instruction[0].c_str(), robotID, outLineSpeed);
+  //     // fprintf(stderr, "%s %d %f :::2\n", instruction[0].c_str(), robotID,
+  //     // outLineSpeed);
+  //   }
+  // }
 }
-void moveToTest(int robotID, position aimPos) {
+void moveToTest(int robotID, position aimPos, position aimPosNext) 
+{
   // double lineSpeed=getLineSpeed(robotID);
   position now = robots[robotID].pos;
   double towards = robots[robotID].towards;
@@ -532,24 +574,38 @@ void moveToTest(int robotID, position aimPos) {
   double targetAng = atan2((aimPos.y - now.y), (aimPos.x - now.x));
   double diffAngle = targetAng - towards;
   double DiffAngle = fabs(diffAngle);
-  // if(fabs(towards)>PI)
-  //   return;
-  if (DiffAngle >= 2 * PI) //选择小的角度，角度正负与要旋转的正负相同
+  double targetAngNext=atan2(aimPosNext.y - aimPos.y, aimPosNext.x - aimPos.x); //预测的目标方向
+  double diffAngleNext = targetAngNext - targetAng;                               //预测的转角大小
+  double DiffAngleNext = fabs(diffAngleNext);
+  double turningLineSpeed;    //转向速度
+  double deltaDis;        //超台距离
+  if (DiffAngleNext >= PI) //选择小的角度
+  {
+    if (diffAngleNext > 0)
+      diffAngleNext -= (2 * PI);
+    else
+      diffAngleNext += (2 * PI);
+    DiffAngleNext = (2 * PI) - DiffAngle;
+  }
+  if (DiffAngle >= PI) //选择小的角度，角度正负与要旋转的正负相同
   {
     if (diffAngle > 0)
       diffAngle -= (2 * PI);
     else
       diffAngle += (2 * PI);
-    DiffAngle -= (2 * PI);
+    DiffAngle = (2 * PI) - DiffAngle;
   }
-  if (DiffAngle > deltaAng) //需要转弯
+  turningLineSpeed = TurningLineSpeed(diffAngleNext);                        //预测的转向速度
+  deltaDis = deltaDisFuc(diffAngleNext);                                  //根据预测转向角计算出的超台距离函数
+
+  if (DiffAngle > deltaAng) //需要转向/调整
     _rotate(robotID, diffAngle, deltaAng);
   else //角度满足，可以直走
   {
     double real_Dis = cos(DiffAngle) * distance;
     double tmp = sin(DiffAngle) * distance;
-    double deltaDis = sqrt(0.16 - tmp * tmp);
-    _run(robotID, real_Dis, deltaDis);
+//    double deltaDis = sqrt(0.16 - tmp * tmp);
+    _run(robotID, real_Dis,deltaDis,turningLineSpeed);
   }
 }
 /*
