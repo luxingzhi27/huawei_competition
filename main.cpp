@@ -41,7 +41,7 @@ void readWorkStation();
 void readPerFrame();
 bool readMap();
 double getDistance(position start, position end);
-int getNearestWorkStation(int workStationType, position robotPos);
+int getNearestWorkStation(int workStationType, int robotType);
 int getAimWorkStationType(int robotID, int cnt);
 void moveToTest(int robotID, position aimPos);
 
@@ -171,7 +171,7 @@ int qReadInt() {
 */
 int getDst(int robotType, int cnt) {
   auto dstWorkStationType = getAimWorkStationType(robotType, cnt);
-  return getNearestWorkStation(dstWorkStationType, robots[robotType].getPos());
+  return getNearestWorkStation(dstWorkStationType, robotType);
 }
 
 int getRobotxWorkStationNum(int robotType) {
@@ -403,13 +403,17 @@ double getDistance(position start, position end) {
   return sqrt(distance_x * distance_x + distance_y * distance_y);
 }
 
-int getNearestWorkStation(int workStationType, position robotPos) {
+int getNearestWorkStation(int workStationType, int robotID) {
+  auto robotPos = robots[robotID].pos;
   double minDistance = 10000;
   int aimID = 0;
   for (auto i : workStations) {
     if (i->type == workStationType) {
-      // if (i->productStatus == 1)
-      //   return i->ID;
+      if (robotID == 3 && workStationType == 4 || workStationType == 5 ||
+          workStationType == 6) {
+        if (i->productStatus == 1)
+          return i->ID;
+      } //
       auto distance = getDistance(robotPos, i->pos);
       if (distance < minDistance) {
         minDistance = distance;
@@ -521,7 +525,7 @@ void moveToTest(int robotID, position aimPos) {
   position now = robots[robotID].pos;
   double towards = robots[robotID].towards;
   double distance = getDistance(now, aimPos);
-  double deltaAng = asin(0.39/ distance);
+  double deltaAng = asin(0.392 / distance);
   double targetAng = atan2((aimPos.y - now.y), (aimPos.x - now.x));
   double diffAngle = targetAng - towards;
   double DiffAngle = fabs(diffAngle);
