@@ -26,6 +26,10 @@ int workStationNum = 0;
 char line[1024];
 string instruction[] = {"forward", "rotate", "buy", "sell", "destroy"};
 
+int cnt[4] = {1, 1, 1, 1};
+position pos[4];
+int dstWorkStationID[4];
+
 double qReadDouble();
 int qReadInt();
 position getDst(int robotType);
@@ -166,9 +170,8 @@ int qReadInt() {
 根据机器人种类得到目的地位置
 */
 int getDst(int robotType, int cnt) {
-  auto dstWorkStationType=getAimWorkStationType(robotType, cnt);
-  return getNearestWorkStation(dstWorkStationType,
-                               robots[robotType].getPos());
+  auto dstWorkStationType = getAimWorkStationType(robotType, cnt);
+  return getNearestWorkStation(dstWorkStationType, robots[robotType].getPos());
 }
 
 int getRobotxWorkStationNum(int robotType) {
@@ -179,58 +182,68 @@ int getRobotxWorkStationNum(int robotType) {
 }
 
 void robotProcess(int robotType) {
-  static int cnt[4] = {1, 1, 1, 1};
-  static position pos[4];
-  static int dstWorkStationID[4];
+
   if (robots[robotType].isMovingToDst == false) {
     robots[robotType].isMovingToDst = true;
     if (cnt[robotType] == getRobotxWorkStationNum(robotType) + 1)
       cnt[robotType] = 1;
     dstWorkStationID[robotType] = getDst(robotType, cnt[robotType]);
-    //fprintf(stderr, "robotType:%d  dstWorkStationID:%d\n", robotType,
-            //dstWorkStationID[robotType]);
-    //fflush(stderr);
+    // fprintf(stderr, "robotType:%d  dstWorkStationID:%d\n", robotType,
+    // dstWorkStationID[robotType]);
+    // fflush(stderr);
     pos[robotType].x = workStations[dstWorkStationID[robotType]]->pos.x;
     pos[robotType].y = workStations[dstWorkStationID[robotType]]->pos.y;
     cnt[robotType]++;
   }
-  // fprintf(stderr,"robotType:%d  pos_x:%fpos_y:%f\n",robotType,pos[robotType].x,pos[robotType].y);
+  // fprintf(stderr,"robotType:%d
+  // pos_x:%fpos_y:%f\n",robotType,pos[robotType].x,pos[robotType].y);
   // fflush(stderr);
-  moveToTest(robotType, pos[robotType]);
+}
+
+void buyAndSell(int robotType) {
   if (robots[robotType].workStationID == dstWorkStationID[robotType]) {
     robots[robotType].isMovingToDst = false;
     switch (robotType) {
     case 0:
-      if (workStations[dstWorkStationID[robotType]]->type== 1&&robots[0].lastBuy!=1)
+      if (workStations[dstWorkStationID[robotType]]->type == 1 &&
+          robots[0].lastBuy != 1)
         printf("buy 0\n");
-      else if(workStations[dstWorkStationID[robotType]]->type==2&&robots[0].lastBuy!=2)
+      else if (workStations[dstWorkStationID[robotType]]->type == 2 &&
+               robots[0].lastBuy != 2)
         printf("buy 0\n");
-      else if (workStations[dstWorkStationID[robotType]]->type== 4)
+      else if (workStations[dstWorkStationID[robotType]]->type == 4)
         printf("sell 0\n");
       break;
     case 1:
-      if (workStations[dstWorkStationID[robotType]]->type== 1&&robots[1].lastBuy!=1)
+      if (workStations[dstWorkStationID[robotType]]->type == 1 &&
+          robots[1].lastBuy != 1)
         printf("buy 1\n");
-      if(    workStations[dstWorkStationID[robotType]]->type == 3&&robots[1].lastBuy!=3)
+      if (workStations[dstWorkStationID[robotType]]->type == 3 &&
+          robots[1].lastBuy != 3)
         printf("buy 1\n");
       else if (workStations[dstWorkStationID[robotType]]->type == 5)
         printf("sell 1\n");
       break;
     case 2:
-      if (workStations[dstWorkStationID[robotType]]->type == 3&&robots[2].lastBuy!=3) 
+      if (workStations[dstWorkStationID[robotType]]->type == 3 &&
+          robots[2].lastBuy != 3)
         printf("buy 2\n");
-      if(    workStations[dstWorkStationID[robotType]]->type == 2&&robots[2].lastBuy!=2)
+      if (workStations[dstWorkStationID[robotType]]->type == 2 &&
+          robots[2].lastBuy != 2)
         printf("buy 2\n");
       else if (workStations[dstWorkStationID[robotType]]->type == 6)
         printf("sell 2\n");
       break;
     case 3:
-      if (workStations[dstWorkStationID[robotType]]->type == 4&&robots[3].lastBuy!=4)
+      if (workStations[dstWorkStationID[robotType]]->type == 4 &&
+          robots[3].lastBuy != 4)
         printf("buy 3\n");
-      
-      else if(workStations[dstWorkStationID[robotType]]->type == 5&&robots[3].lastBuy!=5)
+
+      else if (workStations[dstWorkStationID[robotType]]->type == 5 &&
+               robots[3].lastBuy != 5)
         printf("buy 3\n");
-      else if(workStations[dstWorkStationID[robotType]]->type == 6&&robots[3].lastBuy!=6)
+      else if (workStations[dstWorkStationID[robotType]]->type == 6 &&
+               robots[3].lastBuy != 6)
         printf("buy 3\n");
       else if (workStations[dstWorkStationID[robotType]]->type == 9)
         printf("sell 3\n");
@@ -246,25 +259,28 @@ void robotProcess(int robotType) {
 
 void dispatch() {
   for (int i = 0; i < 4; ++i) {
-    robots[i].lastBuy=robots[i].itemID==0?robots[i].lastBuy:robots[i].itemID;
-    //fprintf(stderr, "robot:%d,lastBuy:%d\n",i,robots[i].lastBuy);
-    //fflush(stderr);
+    robots[i].lastBuy =
+        robots[i].itemID == 0 ? robots[i].lastBuy : robots[i].itemID;
+    // fprintf(stderr, "robot:%d,lastBuy:%d\n",i,robots[i].lastBuy);
+    // fflush(stderr);
     robotProcess(i);
+    moveToTest(i, pos[i]);
+    buyAndSell(i);
   }
 }
 
 void readRobot() {
   for (int i = 0; i < 4; i++) {
-    cin>>robots[i].workStationID; //= qReadInt();
-    cin>>robots[i].itemID;// = qReadInt();
-    cin>>robots[i].timeValue;// = qReadDouble();
-    cin>>robots[i].collisionValue; //= qReadDouble();
-    cin>>robots[i].angleSpeed;// = qReadDouble();
-    cin>>robots[i].lineSpeed_x;// = qReadDouble();
-    cin>>robots[i].lineSpeed_y;// = qReadDouble();
-    cin>>robots[i].towards ;//= qReadDouble();
-    cin>>robots[i].pos.x ;//= qReadDouble();
-    cin>>robots[i].pos.y;// = qReadDouble();
+    cin >> robots[i].workStationID;  //= qReadInt();
+    cin >> robots[i].itemID;         // = qReadInt();
+    cin >> robots[i].timeValue;      // = qReadDouble();
+    cin >> robots[i].collisionValue; //= qReadDouble();
+    cin >> robots[i].angleSpeed;     // = qReadDouble();
+    cin >> robots[i].lineSpeed_x;    // = qReadDouble();
+    cin >> robots[i].lineSpeed_y;    // = qReadDouble();
+    cin >> robots[i].towards;        //= qReadDouble();
+    cin >> robots[i].pos.x;          //= qReadDouble();
+    cin >> robots[i].pos.y;          // = qReadDouble();
   }
 }
 
@@ -329,21 +345,22 @@ void readWorkStation() {
   for (int i = 0; i < workStationNum; i++) {
     workStations[i]->ID = i;
     getRawMaterialType(workStations[i]->type, workStations[i]->rawMaterialType);
-    cin>>workStations[i]->type;// = qReadInt();
+    cin >> workStations[i]->type; // = qReadInt();
     workStations[i]->productType = getProductType(workStations[i]->type);
-    cin>>workStations[i]->pos.x;// = qReadDouble();
-    cin>>workStations[i]->pos.y ;//= qReadDouble();
-    cin>>workStations[i]->leftWorkTime ;//= qReadInt();
-    int tmp=0;
-    cin>>tmp;
-    getRawMaterialStatus(tmp/*qReadInt()*/, workStations[i]->rawMaterialStatus);
-    cin>>workStations[i]->productStatus;// = qReadInt();
+    cin >> workStations[i]->pos.x;        // = qReadDouble();
+    cin >> workStations[i]->pos.y;        //= qReadDouble();
+    cin >> workStations[i]->leftWorkTime; //= qReadInt();
+    int tmp = 0;
+    cin >> tmp;
+    getRawMaterialStatus(tmp /*qReadInt()*/,
+                         workStations[i]->rawMaterialStatus);
+    cin >> workStations[i]->productStatus; // = qReadInt();
   }
 }
 
 void readPerFrame() {
   fgets(line, sizeof line, stdin);
-  money=std::atoi(line);
+  money = std::atoi(line);
   readWorkStation();
   readRobot();
   /*for (int i = 0; i < 4; i++) {
@@ -391,9 +408,9 @@ int getNearestWorkStation(int workStationType, position robotPos) {
   int aimID = 0;
   for (auto i : workStations) {
     if (i->type == workStationType) {
+      // if (i->productStatus == 1)
+      //   return i->ID;
       auto distance = getDistance(robotPos, i->pos);
-      fprintf(stderr,"workStationID:%d  pos_x:%f  pos_y:%f\n",i->ID,i->pos.x,i->pos.y);
-      fflush(stderr);
       if (distance < minDistance) {
         minDistance = distance;
         aimID = i->ID;
@@ -435,40 +452,38 @@ double angleSpeedFuc(double angle) {
 // }
 
 //机器人移动函数（测试）总共包含三部分
-void _rotate(int robotID, double diffAng, double deltaAng)
-{
-  double angleSpeed=robots[robotID].angleSpeed;
-  double towards=robots[robotID].towards;
+void _rotate(int robotID, double diffAng, double deltaAng) {
+  double angleSpeed = robots[robotID].angleSpeed;
+  double towards = robots[robotID].towards;
   double acAngSpeed;
-  double minAng;    //最短减速/加速距离
-  double f= diffAng>0 ? 1 : (-1);
-  diffAng=fabs(diffAng);
-  if(diffAng>(PI))
+  double minAng; //最短减速/加速距离
+  double f = diffAng > 0 ? 1 : (-1);
+  diffAng = fabs(diffAng);
+  if (diffAng > (PI))
     printf("%s %d %f\n", instruction[0].c_str(), robotID, 0.0); //降速
-//    fprintf(stderr,"%s %d %f***0\n", instruction[0].c_str(), robotID, 0.0);
-  if(!robots[robotID].itemID) //判断是否拿货物
-    acAngSpeed=ang_a;
+  //    fprintf(stderr,"%s %d %f***0\n", instruction[0].c_str(), robotID, 0.0);
+  if (!robots[robotID].itemID) //判断是否拿货物
+    acAngSpeed = ang_a;
   else
     acAngSpeed = ang_A;
   minAng = angleSpeed * angleSpeed / (2 * acAngSpeed);
   if (fabs(diffAng - minAng) <= deltaAng) //可以减角速度为0
   {
     printf("%s %d %f\n", instruction[1].c_str(), robotID, 0.0);
-//    fprintf(stderr, "%s %d %f\n", instruction[1].c_str(), robotID, 0.0);
-  }
-  else
-  {
-    double outAngleSpeed=angleSpeedFuc(diffAng)*f;
+    //    fprintf(stderr, "%s %d %f\n", instruction[1].c_str(), robotID, 0.0);
+  } else {
+    double outAngleSpeed = angleSpeedFuc(diffAng) * f;
     printf("%s %d %f\n", instruction[1].c_str(), robotID, outAngleSpeed);
-//    fprintf(stderr, "%s %d %f\n", instruction[1].c_str(), robotID, outAngleSpeed);
+    //    fprintf(stderr, "%s %d %f\n", instruction[1].c_str(), robotID,
+    //    outAngleSpeed);
   }
 }
-void _run(int robotID, double distance, double deltaDis)
-{
-  double lineSpeed=getLineSpeed(robotID);
-//  fprintf(stderr,"should be accelerating!************LineSpeed= %f",lineSpeed);
-  double minDis,acSpeed;      //最小加速/减速距离，最大加速度
-  if(!robots[robotID].itemID) //机器人没有货
+void _run(int robotID, double distance, double deltaDis) {
+  double lineSpeed = getLineSpeed(robotID);
+  //  fprintf(stderr,"should be accelerating!************LineSpeed=
+  //  %f",lineSpeed);
+  double minDis, acSpeed;      //最小加速/减速距离，最大加速度
+  if (!robots[robotID].itemID) //机器人没有货
   {
     minDis = s_min;
     acSpeed = a;
@@ -482,21 +497,22 @@ void _run(int robotID, double distance, double deltaDis)
     if (distance >= (2 * minDis)) //满足最大加速度
     {
       printf("%s %d %f\n", instruction[0].c_str(), robotID, 6.0);
-    //  fprintf(stderr, "%s %d %f :::1\n", instruction[0].c_str(), robotID, 6.0);
-    }
-    else
-    {
-      double outLineSpeed=sqrt(distance/acSpeed);   //计算适合的速度
+      //  fprintf(stderr, "%s %d %f :::1\n", instruction[0].c_str(),
+      //  robotID, 6.0);
+    } else {
+      double outLineSpeed = sqrt(distance / acSpeed); //计算适合的速度
       printf("%s %d %f\n", instruction[0].c_str(), robotID, outLineSpeed);
-      // fprintf(stderr, "%s %d %f :::2\n", instruction[0].c_str(), robotID, outLineSpeed);
+      // fprintf(stderr, "%s %d %f :::2\n", instruction[0].c_str(), robotID,
+      // outLineSpeed);
     }
   } else //线速度不为零，判断是否要减速
   {
-    minDis=lineSpeed*lineSpeed/(2*acSpeed);
-    if(abs(distance-minDis)<deltaDis) //满足减速条件
+    minDis = lineSpeed * lineSpeed / (2 * acSpeed);
+    if (abs(distance - minDis) < deltaDis) //满足减速条件
     {
-      printf("%s %d %f\n", instruction[0].c_str(), robotID, 0.0); 
-       //fprintf(stderr, "%s %d %f :::0\n", instruction[0].c_str(), robotID, 0.0);
+      printf("%s %d %f\n", instruction[0].c_str(), robotID, 0.0);
+      // fprintf(stderr, "%s %d %f :::0\n", instruction[0].c_str(), robotID,
+      // 0.0);
     }
   }
 }
@@ -505,28 +521,28 @@ void moveToTest(int robotID, position aimPos) {
   position now = robots[robotID].pos;
   double towards = robots[robotID].towards;
   double distance = getDistance(now, aimPos);
-  double deltaAng = asin(0.395 / distance);
+  double deltaAng = asin(0.39/ distance);
   double targetAng = atan2((aimPos.y - now.y), (aimPos.x - now.x));
-  double diffAngle = targetAng - towards; 
+  double diffAngle = targetAng - towards;
   double DiffAngle = fabs(diffAngle);
   // if(fabs(towards)>PI)
   //   return;
   if (DiffAngle >= 2 * PI) //选择小的角度，角度正负与要旋转的正负相同
   {
-    if(diffAngle>0)
-      diffAngle-=(2*PI);
+    if (diffAngle > 0)
+      diffAngle -= (2 * PI);
     else
-      diffAngle+=(2*PI);
-    DiffAngle-=(2*PI);  
+      diffAngle += (2 * PI);
+    DiffAngle -= (2 * PI);
   }
-  if (DiffAngle > deltaAng)  //需要转弯
-    _rotate(robotID,diffAngle,deltaAng);
-  else                              //角度满足，可以直走
+  if (DiffAngle > deltaAng) //需要转弯
+    _rotate(robotID, diffAngle, deltaAng);
+  else //角度满足，可以直走
   {
-    double real_Dis=cos(DiffAngle)*distance;
-    double tmp=sin(DiffAngle)*distance;
-    double deltaDis=sqrt(0.16-tmp*tmp);
-    _run(robotID,real_Dis,deltaDis);
+    double real_Dis = cos(DiffAngle) * distance;
+    double tmp = sin(DiffAngle) * distance;
+    double deltaDis = sqrt(0.16 - tmp * tmp);
+    _run(robotID, real_Dis, deltaDis);
   }
 }
 /*
@@ -535,15 +551,15 @@ void moveToTest(int robotID, position aimPos) {
  */
 // void moveTo(int robotID, position aimPos) {
 
-  // auto aimID = getNearestWorkStation(9, itemPos[robotID]);
-  // double dstx = aimPos.x, dsty = aimPos.y;
-  // // fprintf(stderr, "aimPos:(%f,%f)\n\n", dstx, dsty);
-  // fflush(stderr);
-  // double nowx = robots[robotID].pos.x, nowy = robots[robotID].pos.y;
-  // double angleSpeed = robots[robotID].angleSpeed;
-  // double lineSpeedX = robots[robotID].lineSpeed_x;
-  // double lineSpeedY = robots[robotID].lineSpeed_y;
-  // double towards = robots[robotID].towards;
+// auto aimID = getNearestWorkStation(9, itemPos[robotID]);
+// double dstx = aimPos.x, dsty = aimPos.y;
+// // fprintf(stderr, "aimPos:(%f,%f)\n\n", dstx, dsty);
+// fflush(stderr);
+// double nowx = robots[robotID].pos.x, nowy = robots[robotID].pos.y;
+// double angleSpeed = robots[robotID].angleSpeed;
+// double lineSpeedX = robots[robotID].lineSpeed_x;
+// double lineSpeedY = robots[robotID].lineSpeed_y;
+// double towards = robots[robotID].towards;
 
 //   double outLineSpeed, outAngleSpeed; // 要输出的速度
 
@@ -587,7 +603,8 @@ void moveToTest(int robotID, position aimPos) {
 //   //   outLineSpeed = 6;
 //   // } else if(result_x < 0 && result_y < 0){
 //   //   outLineSpeed = -2;
-//   // }// position getDestination(int robotID) { return workStations[15]->posLight) *
+//   // }// position getDestination(int robotID) { return
+//   workStations[15]->posLight) *
 //                       (angle_towards - 2 * PI);
 //   double derta2 =
 //       angleSpeed * angleSpeed +
@@ -632,7 +649,8 @@ void moveToTest(int robotID, position aimPos) {
 //     // 机器人没有货物且周围工作台有货
 //     else {
 //       for (int i = 1; i < 8; i++) {
-//         if (workStations[robots[robotID].workStationID]->rawMaterialStatus[i]) {
+//         if
+//         (workStations[robots[robotID].workStationID]->rawMaterialStatus[i]) {
 //           printf("%s %d\n", instruction[2].c_str(), robotID);
 //           break;
 //         }
@@ -656,6 +674,15 @@ int main() {
     //       buyAndSell(i);
     // moveToTest(i, getDestination(i));
     dispatch();
+    // for (int i = 0; i < 4; ++i) {
+    //   robots[i].lastBuy =
+    //       robots[i].itemID == 0 ? robots[i].lastBuy : robots[i].itemID;
+    //   // fprintf(stderr, "robot:%d,lastBuy:%d\n",i,robots[i].lastBuy);
+    //   // fflush(stderr);
+    //   robotProcess(i);
+    //   moveToTest(i, pos[i]);
+    //   buyAndSell(i);
+    // }
 
     printf("OK\n");
     fflush(stdout);
