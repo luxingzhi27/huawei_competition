@@ -47,6 +47,7 @@ int getNearestWorkStation(int workStationType, int robotType);
 int getAimWorkStationType(int robotID, int robotCnt);
 void moveToTest(int robotID, position aimPos, position aimPosNext);
 int getNextDst(int robotType,int cnt);
+bool isFullRawMaterial(int workStationID,int itemID);
 
 int getAimWorkStationType(int robotID, int robotCnt) {
   if (robotID == 0) {
@@ -118,9 +119,14 @@ int getAimWorkStationType(int robotID, int robotCnt) {
       return 7;
       break;
     case 7:
+      //if(robots[3].itemID==0){
+        //return 4;
+      //}
       return 8;
       break;
     case 8:
+      //if(robots[3].itemID==0)
+        //return 5;
       return 9;
       break;
     }
@@ -182,10 +188,11 @@ int getDst(int robotType, int cnt) {
 }
 
 int getNextDst(int robotType,int cnt){
+  vector<bool> flag(workStationNum,true);
   auto dstWorkStationType=getAimWorkStationType(robotType,cnt);
   auto dstPos =workStations[dstWorkStationID[robotType]]->pos;
   double minDistance = 10000;
-  int aimID = 0;
+  int aimID = -1;
   for (auto i : workStations) {
     if (i->type == dstWorkStationType) {
       if (robotType == 3 && dstWorkStationType == 4 || dstWorkStationType == 5 ||
@@ -193,8 +200,10 @@ int getNextDst(int robotType,int cnt){
         if (i->productStatus == 1)
           return i->ID;
       } //
+      if(isFullRawMaterial(i->ID, robots[robotType].itemID))
+        flag[i->ID]=false;
       auto distance = getDistance(dstPos, i->pos);
-      if (distance < minDistance) {
+      if (distance < minDistance&&flag[i->ID]) {
         minDistance = distance;
         aimID = i->ID;
       }
@@ -216,11 +225,15 @@ void robotProcess(int robotType) {
     robots[robotType].isMovingToDst = true;
     if (cnt[robotType] == getRobotxWorkStationNum(robotType) + 1)
       cnt[robotType] = 1;
-    dstWorkStationID[robotType] = getDst(robotType, cnt[robotType]);
+    auto dst=getDst(robotType, cnt[robotType]);
+    if(dst>=0)
+      dstWorkStationID[robotType] = dst;
     // fprintf(stderr, "robotType:%d  dstWorkStationID:%d\n", robotType,
     // dstWorkStationID[robotType]);
     // fflush(stderr);
-    nextWorkStationID[robotType]=getNextDst(robotType,cnt[robotType]+1);
+    auto nextDst=getNextDst(robotType, cnt[robotType]+1);
+    if(nextDst>=0)
+      nextWorkStationID[robotType]=getNextDst(robotType,cnt[robotType]+1);
     pos[robotType].x = workStations[dstWorkStationID[robotType]]->pos.x;
     pos[robotType].y = workStations[dstWorkStationID[robotType]]->pos.y;
     cnt[robotType]++;
@@ -366,7 +379,8 @@ void getRawMaterialStatus(int status, bool *rawMaterialStatus) {
   for (int i = 1; i < 8; ++i) {
     if (a[i] == 1) {
       rawMaterialStatus[i] = true;
-    }
+    }else if (a[i]==0)
+      rawMaterialStatus[i]=false;
   }
 }
 
@@ -382,6 +396,8 @@ void readWorkStation() {
     cin >> workStations[i]->leftWorkTime; //= qReadInt();
     int tmp = 0;
     cin >> tmp;
+    fprintf(stderr,"workSationID:%d status:%d\n",i,tmp);
+    fflush(stderr);
     getRawMaterialStatus(tmp /*qReadInt()*/,
                          workStations[i]->rawMaterialStatus);
     cin >> workStations[i]->productStatus; // = qReadInt();
@@ -433,19 +449,27 @@ double getDistance(position start, position end) {
   return sqrt(distance_x * distance_x + distance_y * distance_y);
 }
 
+bool isFullRawMaterial(int workStationID,int itemID){
+  //fprintf(stderr,"frame:%d workSationID:%d item%d:%i\n",frameID,workStationID,itemID,workStations[workStationID]->rawMaterialStatus[itemID]);
+  return workStations[workStationID]->rawMaterialStatus[itemID];
+}
+
 int getNearestWorkStation(int workStationType, int robotID) {
+  vector<bool> flag(workStationNum,true);
   auto robotPos = robots[robotID].pos;
   double minDistance = 10000;
-  int aimID = 0;
+  int aimID = -1;
   for (auto i : workStations) {
     if (i->type == workStationType) {
-      if (robotID == 3 && workStationType == 4 || workStationType == 5 ||
-          workStationType == 6) {
+      if (robotID == 3 && (workStationType == 4 || workStationType == 5 ||
+          workStationType == 6)) {
         if (i->productStatus == 1)
           return i->ID;
       } //
+      if(isFullRawMaterial(i->ID, robots[robotID].itemID))
+        flag[i->ID]=false;
       auto distance = getDistance(robotPos, i->pos);
-      if (distance < minDistance) {
+      if (distance < minDistance&&flag[i->ID]) {
         minDistance = distance;
         aimID = i->ID;
       }
