@@ -5,4 +5,4 @@ cmake ..
 make
 cp ./main ../LinuxRelease/
 cd ../LinuxRelease/
-./Robot_gui -m ./map.txt "./main"
+./Robot_gui -m ./1.txt "./main"

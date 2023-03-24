@@ -31,6 +31,10 @@ position pos[4];
 int dstWorkStationID[4];
 int nextWorkStationID[4];
 
+bool hasNine = false;
+bool hasEight = false;
+bool hasSeven = false;
+
 double qReadDouble();
 int qReadInt();
 void robotProcess(int robotType);
@@ -46,8 +50,8 @@ double getDistance(position start, position end);
 int getNearestWorkStation(int workStationType, int robotType);
 int getAimWorkStationType(int robotID, int robotCnt);
 void moveToTest(int robotID, position aimPos, position aimPosNext);
-int getNextDst(int robotType,int cnt);
-bool isFullRawMaterial(int workStationID,int itemID);
+int getNextDst(int robotType, int cnt);
+bool isFullRawMaterial(int workStationID, int itemID);
 
 int getAimWorkStationType(int robotID, int robotCnt) {
   if (robotID == 0) {
@@ -95,40 +99,100 @@ int getAimWorkStationType(int robotID, int robotCnt) {
       break;
     }
   } else if (robotID == 3) {
-    if (robots[robotID].itemID==7){
-      cnt[robotID]--;
-      return 8;
-    }
-    switch (robotCnt) {
-    case 1:
-      return 4;
-      break;
-    case 2:
-      return 7;
-      break;
-    case 3:
-      return 5;
-      break;
-    case 4:
-      return 7;
-      break;
-    case 5:
-      return 6;
-      break;
-    case 6:
-      return 7;
-      break;
-    case 7:
-      //if(robots[3].itemID==0){
-        //return 4;
-      //}
-      return 8;
-      break;
-    case 8:
-      //if(robots[3].itemID==0)
-        //return 5;
-      return 9;
-      break;
+    if (hasNine && hasEight && hasSeven) {
+      if (robots[robotID].itemID == 7) {
+        cnt[robotID]--;
+        return 8;
+      }
+      switch (robotCnt) {
+      case 1:
+        return 4;
+        break;
+      case 2:
+        return 7;
+        break;
+      case 3:
+        return 5;
+        break;
+      case 4:
+        return 7;
+        break;
+      case 5:
+        return 6;
+        break;
+      case 6:
+        return 7;
+        break;
+      case 7:
+        // if(robots[3].itemID==0){
+        // return 4;
+        //}
+        return 8;
+        break;
+      case 8:
+        // if(robots[3].itemID==0)
+        // return 5;
+        return 9;
+        break;
+      }
+    } else if (hasEight && hasSeven && !hasNine) {
+      fprintf(stderr, "robot:%d cnt:%d\n", robotID, robotCnt);
+      fflush(stderr);
+      if (robots[robotID].itemID == 7) {
+        cnt[robotID]--;
+        return 8;
+      }
+      switch (robotCnt) {
+      case 1:
+        return 4;
+        break;
+      case 2:
+        return 7;
+        break;
+      case 3:
+        return 5;
+        break;
+      case 4:
+        return 7;
+        break;
+      case 5:
+        return 6;
+        break;
+      case 6:
+        return 7;
+        break;
+      case 7:
+        // if(robots[3].itemID==0){
+        // return 4;
+        //}
+        return 8;
+        break;
+      }
+    } else if (!hasEight && !hasSeven && hasNine) {
+      if (robots[robotID].itemID > 0) {
+        cnt[robotID]--;
+        return 9;
+      }
+      switch (robotCnt) {
+      case 1:
+        return 4;
+        break;
+      case 2:
+        return 9;
+        break;
+      case 3:
+        return 5;
+        break;
+      case 4:
+        return 9;
+        break;
+      case 5:
+        return 6;
+        break;
+      case 6:
+        return 9;
+        break;
+      }
     }
   }
   return -1;
@@ -187,23 +251,23 @@ int getDst(int robotType, int cnt) {
   return getNearestWorkStation(dstWorkStationType, robotType);
 }
 
-int getNextDst(int robotType,int cnt){
-  vector<bool> flag(workStationNum,true);
-  auto dstWorkStationType=getAimWorkStationType(robotType,cnt);
-  auto dstPos =workStations[dstWorkStationID[robotType]]->pos;
+int getNextDst(int robotType, int cnt) {
+  vector<bool> flag(workStationNum, true);
+  auto dstWorkStationType = getAimWorkStationType(robotType, cnt);
+  auto dstPos = workStations[dstWorkStationID[robotType]]->pos;
   double minDistance = 10000;
   int aimID = -1;
   for (auto i : workStations) {
     if (i->type == dstWorkStationType) {
-      if (robotType == 3 && dstWorkStationType == 4 || dstWorkStationType == 5 ||
-          dstWorkStationType == 6) {
+      if (robotType == 3 && dstWorkStationType == 4 ||
+          dstWorkStationType == 5 || dstWorkStationType == 6) {
         if (i->productStatus == 1)
           return i->ID;
       } //
-      if(isFullRawMaterial(i->ID, robots[robotType].itemID))
-        flag[i->ID]=false;
+      if (isFullRawMaterial(i->ID, robots[robotType].itemID))
+        flag[i->ID] = false;
       auto distance = getDistance(dstPos, i->pos);
-      if (distance < minDistance&&flag[i->ID]) {
+      if (distance < minDistance && flag[i->ID]) {
         minDistance = distance;
         aimID = i->ID;
       }
@@ -215,8 +279,12 @@ int getNextDst(int robotType,int cnt){
 int getRobotxWorkStationNum(int robotType) {
   if (robotType == 0 || robotType == 1 || robotType == 2)
     return 4;
-  else
+  else if (hasEight && hasNine && hasSeven)
     return 8;
+  else if (hasEight && hasSeven && !hasNine)
+    return 7;
+  else if (!hasEight && !hasSeven && hasNine)
+    return 6;
 }
 
 void robotProcess(int robotType) {
@@ -225,15 +293,15 @@ void robotProcess(int robotType) {
     robots[robotType].isMovingToDst = true;
     if (cnt[robotType] == getRobotxWorkStationNum(robotType) + 1)
       cnt[robotType] = 1;
-    auto dst=getDst(robotType, cnt[robotType]);
-    if(dst>=0)
+    auto dst = getDst(robotType, cnt[robotType]);
+    if (dst >= 0)
       dstWorkStationID[robotType] = dst;
     // fprintf(stderr, "robotType:%d  dstWorkStationID:%d\n", robotType,
     // dstWorkStationID[robotType]);
     // fflush(stderr);
-    auto nextDst=getNextDst(robotType, cnt[robotType]+1);
-    if(nextDst>=0)
-      nextWorkStationID[robotType]=getNextDst(robotType,cnt[robotType]+1);
+    auto nextDst = getNextDst(robotType, cnt[robotType] + 1);
+    if (nextDst >= 0)
+      nextWorkStationID[robotType] = getNextDst(robotType, cnt[robotType] + 1);
     pos[robotType].x = workStations[dstWorkStationID[robotType]]->pos.x;
     pos[robotType].y = workStations[dstWorkStationID[robotType]]->pos.y;
     cnt[robotType]++;
@@ -379,8 +447,8 @@ void getRawMaterialStatus(int status, bool *rawMaterialStatus) {
   for (int i = 1; i < 8; ++i) {
     if (a[i] == 1) {
       rawMaterialStatus[i] = true;
-    }else if (a[i]==0)
-      rawMaterialStatus[i]=false;
+    } else if (a[i] == 0)
+      rawMaterialStatus[i] = false;
   }
 }
 
@@ -396,8 +464,6 @@ void readWorkStation() {
     cin >> workStations[i]->leftWorkTime; //= qReadInt();
     int tmp = 0;
     cin >> tmp;
-    fprintf(stderr,"workSationID:%d status:%d\n",i,tmp);
-    fflush(stderr);
     getRawMaterialStatus(tmp /*qReadInt()*/,
                          workStations[i]->rawMaterialStatus);
     cin >> workStations[i]->productStatus; // = qReadInt();
@@ -435,6 +501,12 @@ bool readMap() {
     }
     for (int i = 0; i < 100; ++i) {
       if (line[i] >= '1' && line[i] <= '9') {
+        if (line[i] == '9')
+          hasNine = true;
+        if (line[i] == '8')
+          hasEight = true;
+        if (line[i] == '7')
+          hasSeven = true;
         workStationNum++;
         workStations.push_back(new WorkStation);
       }
@@ -449,27 +521,28 @@ double getDistance(position start, position end) {
   return sqrt(distance_x * distance_x + distance_y * distance_y);
 }
 
-bool isFullRawMaterial(int workStationID,int itemID){
-  //fprintf(stderr,"frame:%d workSationID:%d item%d:%i\n",frameID,workStationID,itemID,workStations[workStationID]->rawMaterialStatus[itemID]);
+bool isFullRawMaterial(int workStationID, int itemID) {
+  // fprintf(stderr,"frame:%d workSationID:%d
+  // item%d:%i\n",frameID,workStationID,itemID,workStations[workStationID]->rawMaterialStatus[itemID]);
   return workStations[workStationID]->rawMaterialStatus[itemID];
 }
 
 int getNearestWorkStation(int workStationType, int robotID) {
-  vector<bool> flag(workStationNum,true);
+  vector<bool> flag(workStationNum, true);
   auto robotPos = robots[robotID].pos;
   double minDistance = 10000;
   int aimID = -1;
   for (auto i : workStations) {
     if (i->type == workStationType) {
       if (robotID == 3 && (workStationType == 4 || workStationType == 5 ||
-          workStationType == 6)) {
+                           workStationType == 6)) {
         if (i->productStatus == 1)
           return i->ID;
       } //
-      if(isFullRawMaterial(i->ID, robots[robotID].itemID))
-        flag[i->ID]=false;
+      if (isFullRawMaterial(i->ID, robots[robotID].itemID))
+        flag[i->ID] = false;
       auto distance = getDistance(robotPos, i->pos);
-      if (distance < minDistance&&flag[i->ID]) {
+      if (distance < minDistance && flag[i->ID]) {
         minDistance = distance;
         aimID = i->ID;
       }
@@ -498,35 +571,26 @@ double angleSpeedFuc(double angle) {
     return angleSpeed;
   }
 }
-//diffAngNext与deltaDis的关系
-double deltaDisFuc(double diffAngNext)
-{
-  return 0.8 - 0.6*diffAngNext/PI;
-}
-//diffAng与转向速度的函数
-double TurningLineSpeed(double diffAng)
-{
-  if(diffAng<=PI/4)
+// diffAngNext与deltaDis的关系
+double deltaDisFuc(double diffAngNext) { return 0.8 - 0.6 * diffAngNext / PI; }
+// diffAng与转向速度的函数
+double TurningLineSpeed(double diffAng) {
+  if (diffAng <= PI / 4)
     return 6.0;
-  else if(diffAng>=(PI/2))
-  {
-    return 3-(2/PI)*diffAng;
-  }
-  else
-  {
-    return 6-(8/PI)*diffAng;
+  else if (diffAng >= (PI / 2)) {
+    return 3 - (2 / PI) * diffAng;
+  } else {
+    return 6 - (8 / PI) * diffAng;
   }
 }
-//distance与偏差角系数的函数
-double deltaCoe(double distance)
-{
-  if(distance>=30.0)
+// distance与偏差角系数的函数
+double deltaCoe(double distance) {
+  if (distance >= 30.0)
     return 0.5;
-  else if(distance<=15.0)
+  else if (distance <= 15.0)
     return 0.3;
-  else
-  {
-    double deltaCoe=0.3+(distance-15)*(0.5-0.3);
+  else {
+    double deltaCoe = 0.3 + (distance - 15) * (0.5 - 0.3);
     return deltaCoe;
   }
 }
@@ -538,7 +602,8 @@ void _rotate(int robotID, double diffAng, double deltaAng) {
   double minAng; //最短减速/加速距离
   double f = diffAng > 0 ? 1 : (-1);
   diffAng = fabs(diffAng);
-  printf("%s %d %f\n", instruction[0].c_str(), robotID, TurningLineSpeed(diffAng)); //带有速度函数的降速
+  printf("%s %d %f\n", instruction[0].c_str(), robotID,
+         TurningLineSpeed(diffAng)); //带有速度函数的降速
 
   if (!robots[robotID].itemID) //判断是否拿货物
     acAngSpeed = ang_a;
@@ -556,8 +621,7 @@ void _rotate(int robotID, double diffAng, double deltaAng) {
     //    outAngleSpeed);
   }
 }
-void _run(int robotID, double distance, double deltaDis, double turningSpeed) 
-{
+void _run(int robotID, double distance, double deltaDis, double turningSpeed) {
   double lineSpeed = getLineSpeed(robotID);
   //  fprintf(stderr,"should be accelerating!************LineSpeed=
   //  %f",lineSpeed);
@@ -588,8 +652,7 @@ void _run(int robotID, double distance, double deltaDis, double turningSpeed)
   //   }
   // }
 }
-void moveToTest(int robotID, position aimPos, position aimPosNext) 
-{
+void moveToTest(int robotID, position aimPos, position aimPosNext) {
   // double lineSpeed=getLineSpeed(robotID);
   position now = robots[robotID].pos;
   double towards = robots[robotID].towards;
@@ -598,11 +661,12 @@ void moveToTest(int robotID, position aimPos, position aimPosNext)
   double targetAng = atan2((aimPos.y - now.y), (aimPos.x - now.x));
   double diffAngle = targetAng - towards;
   double DiffAngle = fabs(diffAngle);
-  double targetAngNext=atan2(aimPosNext.y - aimPos.y, aimPosNext.x - aimPos.x); //预测的目标方向
-  double diffAngleNext = targetAngNext - targetAng;                               //预测的转角大小
+  double targetAngNext =
+      atan2(aimPosNext.y - aimPos.y, aimPosNext.x - aimPos.x); //预测的目标方向
+  double diffAngleNext = targetAngNext - targetAng; //预测的转角大小
   double DiffAngleNext = fabs(diffAngleNext);
-  double turningLineSpeed;    //转向速度
-  double deltaDis;        //超台距离
+  double turningLineSpeed; //转向速度
+  double deltaDis;         //超台距离
   if (DiffAngleNext >= PI) //选择小的角度
   {
     if (diffAngleNext > 0)
@@ -619,8 +683,8 @@ void moveToTest(int robotID, position aimPos, position aimPosNext)
       diffAngle += (2 * PI);
     DiffAngle = (2 * PI) - DiffAngle;
   }
-  turningLineSpeed = TurningLineSpeed(diffAngleNext);                        //预测的转向速度
-  deltaDis = deltaDisFuc(diffAngleNext);                                  //根据预测转向角计算出的超台距离函数
+  turningLineSpeed = TurningLineSpeed(diffAngleNext); //预测的转向速度
+  deltaDis = deltaDisFuc(diffAngleNext); //根据预测转向角计算出的超台距离函数
 
   if (DiffAngle > deltaAng) //需要转向/调整
     _rotate(robotID, diffAngle, deltaAng);
@@ -628,8 +692,8 @@ void moveToTest(int robotID, position aimPos, position aimPosNext)
   {
     double real_Dis = cos(DiffAngle) * distance;
     double tmp = sin(DiffAngle) * distance;
-//    double deltaDis = sqrt(0.16 - tmp * tmp);
-    _run(robotID, real_Dis,deltaDis,turningLineSpeed);
+    //    double deltaDis = sqrt(0.16 - tmp * tmp);
+    _run(robotID, real_Dis, deltaDis, turningLineSpeed);
   }
 }
 /*
@@ -753,6 +817,7 @@ int main() {
   readMap();
   puts("OK");
   fflush(stdout);
+  fprintf(stderr, "9:%d 8:%d 7:%d\n", hasNine, hasEight, hasSeven);
   while (scanf("%d", &frameID) != EOF) {
     readPerFrame();
     printf("%d\n", frameID);
